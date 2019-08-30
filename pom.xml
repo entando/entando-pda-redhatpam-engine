@@ -96,6 +96,16 @@
             <artifactId>web-commons</artifactId>
             <version>${entando.commons.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.entando</groupId>
+            <artifactId>pda-core-engine</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.2</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -120,18 +130,7 @@
             <version>3.4.1</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.entando</groupId>
-            <artifactId>entando-pda-core-engine</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
+        <!-- Testing -->
 
     </dependencies>
     <profiles>
