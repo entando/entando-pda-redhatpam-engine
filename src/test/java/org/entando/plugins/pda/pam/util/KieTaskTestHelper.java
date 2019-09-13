@@ -26,33 +26,6 @@ public class KieTaskTestHelper {
     public static final String EXTRA_VARS_ATTRIBUTE_4 = "attribute4";
     public static final String EXTRA_VARS_VALUE_4 = "4";
 
-    /*public List<TaskListResponseDto> createTaskList() {
-        List<TaskListResponseDto> result = new ArrayList<>();
-        result.add(TaskListResponseDto.builder()
-                .id(TASK_ID_1)
-                .name(TASK_NAME_1)
-                .extraVars(createExtraVars1())
-                .build());
-        result.add(TaskListResponseDto.builder()
-                .id(TASK_ID_2)
-                .name(TASK_NAME_2)
-                .extraVars(createExtraVars2())
-                .build());
-        return result;
-    }
-
-    public static List<ExtraVar> createExtraVars1() {
-        return Arrays.asList(
-                new ExtraVar(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_STRING, EXTRA_VARS_VALUE_1),
-                new ExtraVar(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_INTEGER, EXTRA_VARS_VALUE_2));
-    }
-
-    public static List<ExtraVar> createExtraVars2() {
-        return Arrays.asList(
-                new ExtraVar(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_STRING, EXTRA_VARS_VALUE_3),
-                new ExtraVar(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_INTEGER, EXTRA_VARS_VALUE_4));
-    }*/
-
     public List<KieTask> createKieTaskList() {
         List<KieTask> result = new ArrayList<>();
         result.add(KieTask.builder()
