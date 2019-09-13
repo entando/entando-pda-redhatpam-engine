@@ -14,7 +14,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
