@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
-import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
