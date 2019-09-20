@@ -48,7 +48,8 @@ public class KieTaskService implements TaskService {
 
         final Map<Integer, List<KieProcessVariable>> cachedVariables = new HashMap<>();
 
-        List<Task> result = getTasks(restTemplate, connection, request).stream() //Get Tasks //TODO parallel processing
+        List<Task> result = getTasks(restTemplate, connection, request).stream() //Get Tasks
+                .parallel()
                 .peek(t -> { //Get Task Details
                     t.putAll(getTaskDetails(restTemplate, connection, t.getContainerId(), t.getId())
                             .getData().entrySet().stream().filter(e -> e.getValue() != null)
@@ -89,6 +90,8 @@ public class KieTaskService implements TaskService {
 
         return task;
     }
+
+    /****** Auxiliary Methods ******/
 
     private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, PagedListRequest request) {
         KieTasksResponse response = Optional.ofNullable(restTemplate.getForObject(
