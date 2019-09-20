@@ -1,12 +1,11 @@
 package org.entando.plugins.pda.pam.util;
 
-import lombok.experimental.UtilityClass;
-import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
-import org.entando.plugins.pda.pam.service.task.model.KieTask;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import lombok.experimental.UtilityClass;
+import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
+import org.entando.plugins.pda.pam.service.task.model.KieTask;
 
 @UtilityClass
 public class KieTaskTestHelper {
