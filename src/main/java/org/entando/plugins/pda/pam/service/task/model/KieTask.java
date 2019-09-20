@@ -3,16 +3,19 @@ package org.entando.plugins.pda.pam.service.task.model;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.web.response.BaseMapModel;
 
 @Data
+@NoArgsConstructor
 public class KieTask extends BaseMapModel implements Task {
     private static final String ID = "task-id";
     private static final String NAME = "task-name";
     private static final String PROCESS_ID = "task-proc-def-id";
-    private static final String PROCESS_INSTANCE_ID = "task-proc-inst-id";
+    private static final String PROCESS_INSTANCE_ID_ALT1 = "task-proc-inst-id";
+    private static final String PROCESS_INSTANCE_ID_ALT2 = "task-process-instance-id";
     private static final String CONTAINER_ID = "task-container-id";
 
     @Builder
@@ -23,7 +26,7 @@ public class KieTask extends BaseMapModel implements Task {
         this.data.put(ID, id);
         this.data.put(NAME, name);
         this.data.put(PROCESS_ID, processId);
-        this.data.put(PROCESS_INSTANCE_ID, processInstanceId);
+        this.data.put(PROCESS_INSTANCE_ID_ALT1, processInstanceId);
         this.data.put(CONTAINER_ID, containerId);
     }
 
@@ -44,7 +47,11 @@ public class KieTask extends BaseMapModel implements Task {
 
     @Override
     public Integer getProcessInstanceId() {
-        return (Integer) data.get(PROCESS_INSTANCE_ID);
+        if (data.containsKey(PROCESS_INSTANCE_ID_ALT1)) {
+            return (Integer) data.get(PROCESS_INSTANCE_ID_ALT1);
+        } else {
+            return (Integer) data.get(PROCESS_INSTANCE_ID_ALT2);
+        }
     }
 
     @Override
