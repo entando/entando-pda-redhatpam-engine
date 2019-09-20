@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
@@ -19,15 +20,18 @@ import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
 import org.entando.web.exception.BadRequestException;
 import org.entando.web.exception.BadResponseException;
+import org.entando.web.exception.HttpException;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedMetadata;
 import org.entando.web.response.PagedRestResponse;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class KieTaskService implements TaskService {
 
@@ -131,9 +135,19 @@ public class KieTaskService implements TaskService {
     private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection, String containerId,
             Integer taskInstanceId) {
 
-        return Optional.ofNullable(restTemplate.getForObject(
-                connection.getUrl() + TASK_DETAILS_URL, KieTaskDetails.class, containerId, taskInstanceId))
-                .orElseThrow(BadResponseException::new);
+        try {
+            return Optional.ofNullable(restTemplate.getForObject(
+                    connection.getUrl() + TASK_DETAILS_URL, KieTaskDetails.class, containerId, taskInstanceId))
+                    .orElseThrow(BadResponseException::new);
+        } catch (HttpServerErrorException e) {
+            if (e.getStatusCode().is5xxServerError()) {
+                log.warn("Error retrieving TaskDetails, silently skipping: container={}, task={}", containerId, taskInstanceId);
+                return new KieTaskDetails();
+            }
+
+            log.error("Error retrieving TaskDetails: container={}, task={}", containerId, taskInstanceId);
+            throw e;
+        }
     }
 
     private String createFilters(PagedListRequest request) {
