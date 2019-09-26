@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +19,7 @@ import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesRespons
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
-import org.entando.web.exception.BadRequestException;
 import org.entando.web.exception.BadResponseException;
-import org.entando.web.exception.HttpException;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedMetadata;
@@ -50,7 +49,7 @@ public class KieTaskService implements TaskService {
                 .basicAuthorization(connection.getUsername(), connection.getPassword())
                 .build();
 
-        final Map<Integer, List<KieProcessVariable>> cachedVariables = new HashMap<>();
+        final Map<Integer, List<KieProcessVariable>> cachedVariables = new ConcurrentHashMap<>();
 
         List<Task> result = getTasks(restTemplate, connection, request).stream() //Get Tasks
                 .parallel()
@@ -95,8 +94,6 @@ public class KieTaskService implements TaskService {
         return task;
     }
 
-    /****** Auxiliary Methods ******/
-
     private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, PagedListRequest request) {
         KieTasksResponse response = Optional.ofNullable(restTemplate.getForObject(
                 connection.getUrl() + TASK_LIST_URL + createFilters(request), KieTasksResponse.class))
@@ -112,7 +109,8 @@ public class KieTaskService implements TaskService {
                 .orElseThrow(BadResponseException::new);
     }
 
-    private List<KieProcessVariable> getProcessVariables(RestTemplate restTemplate, Connection connection, Integer processInstanceId) {
+    private List<KieProcessVariable> getProcessVariables(RestTemplate restTemplate, Connection connection,
+            Integer processInstanceId) {
         return getProcessVariables(new HashMap<>(), restTemplate, connection, processInstanceId);
     }
 
@@ -141,7 +139,8 @@ public class KieTaskService implements TaskService {
                     .orElseThrow(BadResponseException::new);
         } catch (HttpServerErrorException e) {
             if (e.getStatusCode().is5xxServerError()) {
-                log.warn("Error retrieving TaskDetails, silently skipping: container={}, task={}", containerId, taskInstanceId);
+                log.warn("Error retrieving TaskDetails, silently skipping: container={}, task={}",
+                        containerId, taskInstanceId);
                 return new KieTaskDetails();
             }
 
@@ -151,15 +150,17 @@ public class KieTaskService implements TaskService {
     }
 
     private String createFilters(PagedListRequest request) {
-        String qUrl = String.format("?page=%d&pageSize=%d",
-                request.getPage()-1, request.getPageSize());
+        StringBuilder queryUrl = new StringBuilder();
 
-        if(request.getSort() != null) {
-            qUrl += String.format("&sort=%s&sortOrder=%s",
-                request.getSort(), request.getDirection().equals(Filter.ASC_ORDER));
+        queryUrl.append(String.format("?page=%d&pageSize=%d",
+                request.getPage() - 1, request.getPageSize()));
+
+        if (request.getSort() != null) {
+            queryUrl.append(String.format("&sort=%s&sortOrder=%s",
+                    request.getSort(), request.getDirection().equals(Filter.ASC_ORDER)));
         }
 
-        return qUrl;
+        return queryUrl.toString();
     }
 
 }

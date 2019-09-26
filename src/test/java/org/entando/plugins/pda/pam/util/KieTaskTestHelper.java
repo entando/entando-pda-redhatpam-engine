@@ -2,9 +2,7 @@ package org.entando.plugins.pda.pam.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;

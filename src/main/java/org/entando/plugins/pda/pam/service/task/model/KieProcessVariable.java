@@ -1,9 +1,10 @@
 package org.entando.plugins.pda.pam.service.task.model;
 
-import lombok.AllArgsConstructor;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 import org.entando.web.response.BaseMapModel;
 
 @Data
@@ -11,7 +12,10 @@ import org.entando.web.response.BaseMapModel;
 public class KieProcessVariable extends BaseMapModel {
 
     @Builder
-    public KieProcessVariable(String name, String value) {
+    public KieProcessVariable(String name, String value,
+            @Singular("extraProperty") Map<String,Object> extraProperties) {
+        super(extraProperties);
+
         data.put(name, value);
     }
 
