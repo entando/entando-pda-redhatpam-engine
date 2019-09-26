@@ -44,6 +44,7 @@ public class KieTaskService implements TaskService {
     public static final String PROCESS_VARIABLES_URL = "/server/queries/processes/instances/{pInstanceId}/variables/instances";
     //CHECKSTYLE:ON
 
+    @Override
     public PagedRestResponse<Task> list(Connection connection, PagedListRequest request) {
         RestTemplate restTemplate = restTemplateBuilder
                 .basicAuthorization(connection.getUsername(), connection.getPassword())
