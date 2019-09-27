@@ -53,20 +53,23 @@ public class KieTaskService implements TaskService {
         final Map<Integer, List<KieProcessVariable>> cachedVariables = new ConcurrentHashMap<>();
 
         List<Task> result = getTasks(restTemplate, connection, request).stream() //Get Tasks
-                .parallel()
-                .peek(t -> { //Get Task Details
-                    t.putAll(getTaskDetails(restTemplate, connection, t.getContainerId(), t.getId())
-                            .getData().entrySet().stream().filter(e -> e.getValue() != null)
-                            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-                })
-                .peek(t -> { //Get Process Instance Variables
+                .map(t -> { //Get Process Instance Variables
                     t.putAll(getProcessVariables(cachedVariables, restTemplate, connection, t.getProcessInstanceId())
                             .stream().filter(e -> e.getValue() != null)
                             .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
+                    return t;
                 })
                 .collect(Collectors.toList());
+
+        result.stream().parallel()
+                .forEach(t -> { //Get Task Details
+                    t.putAll(getTaskDetails(restTemplate, connection, t.getContainerId(), t.getId())
+                            .getData().entrySet().stream().filter(e -> e.getValue() != null)
+                            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                });
 
         return new PagedMetadata<>(request, result).toRestResponse(); //TODO how to efficiently query total tasks size?
     }

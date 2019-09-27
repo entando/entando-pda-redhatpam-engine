@@ -6,11 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.entando.plugins.pda.core.model.Task;
-import org.entando.web.response.BaseMapModel;
 
 @Data
 @NoArgsConstructor
-public class KieTask extends BaseMapModel implements Task {
+public class KieTask extends Task {
     private static final String ID = "task-id";
     private static final String NAME = "task-name";
     private static final String PROCESS_ID = "task-proc-def-id";
