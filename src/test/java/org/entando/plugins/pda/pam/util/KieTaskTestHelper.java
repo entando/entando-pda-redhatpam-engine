@@ -90,7 +90,7 @@ public class KieTaskTestHelper {
         return result;
     }
 
-    public List<KieProcessVariable> createKieProcessVariables(Integer processInstanceId) {
+    public List<KieProcessVariable> createKieProcessVariables() {
         return Arrays.asList(
                 KieProcessVariable.builder()
                         .name(EXTRA_VARS_ATTRIBUTE_1)

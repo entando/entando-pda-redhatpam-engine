@@ -68,11 +68,11 @@ public class KieTaskServiceTest {
 
         when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
                 eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables(KieTaskTestHelper.PROCESS_INSTANCE_ID_1)));
+                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
 
         when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
                 eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables(KieTaskTestHelper.PROCESS_INSTANCE_ID_2)));
+                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
 
         when(restTemplate.getForObject(matches(tDetailsPattern), eq(KieTaskDetails.class), any(), any())).thenReturn(
                 KieTaskTestHelper.createKieTaskDetails());
@@ -121,11 +121,11 @@ public class KieTaskServiceTest {
 
         when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
                 eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables(KieTaskTestHelper.PROCESS_INSTANCE_ID_1)));
+                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
 
         when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
                 eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables(KieTaskTestHelper.PROCESS_INSTANCE_ID_2)));
+                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
 
         when(restTemplate.getForObject(matches(tDetailsPattern), eq(KieTaskDetails.class), any(), any())).thenReturn(
                 KieTaskTestHelper.createKieTaskDetails());
