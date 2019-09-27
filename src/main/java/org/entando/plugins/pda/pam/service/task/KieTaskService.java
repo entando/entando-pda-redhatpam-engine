@@ -50,7 +50,7 @@ public class KieTaskService implements TaskService {
                 .basicAuthorization(connection.getUsername(), connection.getPassword())
                 .build();
 
-        final Map<Integer, List<KieProcessVariable>> cachedVariables = new ConcurrentHashMap<>();
+        final Map<String, List<KieProcessVariable>> cachedVariables = new ConcurrentHashMap<>();
 
         List<Task> result = getTasks(restTemplate, connection, request).stream() //Get Tasks
                 .map(t -> { //Get Process Instance Variables
@@ -114,12 +114,12 @@ public class KieTaskService implements TaskService {
     }
 
     private List<KieProcessVariable> getProcessVariables(RestTemplate restTemplate, Connection connection,
-            Integer processInstanceId) {
+            String processInstanceId) {
         return getProcessVariables(new HashMap<>(), restTemplate, connection, processInstanceId);
     }
 
-    private List<KieProcessVariable> getProcessVariables(Map<Integer,List<KieProcessVariable>> cachedVariables,
-            RestTemplate restTemplate, Connection connection, Integer processInstanceId) {
+    private List<KieProcessVariable> getProcessVariables(Map<String,List<KieProcessVariable>> cachedVariables,
+            RestTemplate restTemplate, Connection connection, String processInstanceId) {
 
         if (cachedVariables.containsKey(processInstanceId)) {
             return cachedVariables.get(processInstanceId);
@@ -135,7 +135,7 @@ public class KieTaskService implements TaskService {
     }
 
     private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection, String containerId,
-            Integer taskInstanceId) {
+            String taskInstanceId) {
 
         try {
             return Optional.ofNullable(restTemplate.getForObject(

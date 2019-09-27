@@ -11,17 +11,17 @@ import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 @UtilityClass
 public class KieTaskTestHelper {
 
-    public static final Integer TASK_ID_1 = 1;
+    public static final String TASK_ID_1 = "1";
     public static final String TASK_NAME_1 = "Task 1";
 
-    public static final Integer TASK_ID_2 = 2;
+    public static final String TASK_ID_2 = "2";
     public static final String TASK_NAME_2 = "Task 2";
 
-    public static final Integer TASK_ID_3 = 3;
+    public static final String TASK_ID_3 = "3";
     public static final String TASK_NAME_3 = "Task 3";
 
-    public static final Integer PROCESS_INSTANCE_ID_1 = 1;
-    public static final Integer PROCESS_INSTANCE_ID_2 = 2;
+    public static final String PROCESS_INSTANCE_ID_1 = "1";
+    public static final String PROCESS_INSTANCE_ID_2 = "2";
 
     public static final String EXTRA_VARS_ATTRIBUTE_1 = "attribute1";
     public static final String EXTRA_VARS_VALUE_1 = "value attribute1";

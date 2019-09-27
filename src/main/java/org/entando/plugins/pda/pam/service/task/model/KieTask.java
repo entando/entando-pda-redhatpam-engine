@@ -18,7 +18,7 @@ public class KieTask extends Task {
     private static final String CONTAINER_ID = "task-container-id";
 
     @Builder
-    public KieTask(Integer id, String name, String processId, Integer processInstanceId, String containerId,
+    public KieTask(String id, String name, String processId, String processInstanceId, String containerId,
             @Singular("extraProperty") Map<String,Object> extraProperties) {
         super(extraProperties);
 
@@ -30,8 +30,8 @@ public class KieTask extends Task {
     }
 
     @Override
-    public Integer getId() {
-        return (Integer) data.get(ID);
+    public String getId() {
+        return data.get(ID).toString();
     }
 
     @Override
@@ -45,11 +45,11 @@ public class KieTask extends Task {
     }
 
     @Override
-    public Integer getProcessInstanceId() {
+    public String getProcessInstanceId() {
         if (data.containsKey(PROCESS_INSTANCE_ID_ALT1)) {
-            return (Integer) data.get(PROCESS_INSTANCE_ID_ALT1);
+            return data.get(PROCESS_INSTANCE_ID_ALT1).toString();
         } else {
-            return (Integer) data.get(PROCESS_INSTANCE_ID_ALT2);
+            return data.get(PROCESS_INSTANCE_ID_ALT2).toString();
         }
     }
 
