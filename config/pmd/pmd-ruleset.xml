@@ -39,6 +39,12 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
     <exclude name="DataClass"/>
   </rule>
 
+  <rule ref="category/java/design.xml/SignatureDeclareThrowsException">
+    <properties>
+      <property name="IgnoreJUnitCompletely" value="true"/>
+    </properties>
+  </rule>
+
   <rule ref="category/java/documentation.xml">
     <exclude name="CommentRequired"/>
     <exclude name="CommentSize"/>
@@ -47,6 +53,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
   <rule ref="category/java/errorprone.xml">
     <exclude name="BeanMembersShouldSerialize"/>
     <exclude name="MissingSerialVersionUID"/>
+    <exclude name="DataflowAnomalyAnalysis"/>
     <exclude name="UseLocaleWithCaseConversions"/>
   </rule>
 

@@ -1,24 +1,30 @@
 package org.entando.plugins.pda.pam.service.task.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
+import org.entando.web.response.BaseMapModel;
 
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
-public class KieProcessVariable {
-    private String name;
+public class KieProcessVariable extends BaseMapModel {
 
-    @JsonProperty("old-value")
-    private String oldValue;
+    @Builder
+    public KieProcessVariable(String name, String value,
+            @Singular("extraProperty") Map<String,Object> extraProperties) {
+        super(extraProperties);
 
-    private String value;
+        data.put(name, value);
+    }
 
-    @JsonProperty("process-instance-id")
-    private Long processInstanceId;
+    public String getName() {
+        return (String) data.get("name");
+    }
+
+    public String getValue() {
+        return (String) data.get("value");
+    }
 
 }

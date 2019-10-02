@@ -1,49 +1,61 @@
 package org.entando.plugins.pda.pam.service.task.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Singular;
+import org.entando.plugins.pda.core.model.Task;
 
 @Data
-@Builder
-public class KieTask {
-    @JsonProperty("task-id")
-    private int taskId;
+@NoArgsConstructor
+public class KieTask extends Task {
+    private static final String ID = "task-id";
+    private static final String NAME = "task-name";
+    private static final String PROCESS_ID = "task-proc-def-id";
+    private static final String PROCESS_INSTANCE_ID_ALT1 = "task-proc-inst-id";
+    private static final String PROCESS_INSTANCE_ID_ALT2 = "task-process-instance-id";
+    private static final String CONTAINER_ID = "task-container-id";
 
-    @JsonProperty("task-name")
-    private String taskName;
+    @Builder
+    public KieTask(String id, String name, String processId, String processInstanceId, String containerId,
+            @Singular("extraProperty") Map<String,Object> extraProperties) {
+        super(extraProperties);
 
-    @JsonProperty("task-subject")
-    private String taskSubject;
+        this.data.put(ID, id);
+        this.data.put(NAME, name);
+        this.data.put(PROCESS_ID, processId);
+        this.data.put(PROCESS_INSTANCE_ID_ALT1, processInstanceId);
+        this.data.put(CONTAINER_ID, containerId);
+    }
 
-    @JsonProperty("task-description")
-    private String taskDescription;
+    @Override
+    public String getId() {
+        return data.get(ID).toString();
+    }
 
-    @JsonProperty("task-status")
-    private String taskStatus;
+    @Override
+    public String getName() {
+        return (String) data.get(NAME);
+    }
 
-    @JsonProperty("task-priority")
-    private Integer taskPriority;
+    @Override
+    public String getProcessId() {
+        return (String) data.get(PROCESS_ID);
+    }
 
-    @JsonProperty("task-is-skipable")
-    private Boolean taskIsSkipable;
+    @Override
+    public String getProcessInstanceId() {
+        if (data.containsKey(PROCESS_INSTANCE_ID_ALT1)) {
+            return data.get(PROCESS_INSTANCE_ID_ALT1).toString();
+        } else {
+            return data.get(PROCESS_INSTANCE_ID_ALT2).toString();
+        }
+    }
 
-    @JsonProperty("task-actual-owner")
-    private String taskActualOwner;
-
-    @JsonProperty("task-created-by")
-    private String taskCreatedBy;
-
-    @JsonProperty("task-proc-inst-id")
-    private String taskProcInstId;
-
-    @JsonProperty("task-proc-def-id")
-    private String taskProcDefId;
-
-    @JsonProperty("task-container-id")
-    private String taskContainerId;
-
-    @JsonProperty("task-parent-id")
-    private String taskParentId;
+    @Override
+    public String getContainerId() {
+        return (String) data.get(CONTAINER_ID);
+    }
 
 }
