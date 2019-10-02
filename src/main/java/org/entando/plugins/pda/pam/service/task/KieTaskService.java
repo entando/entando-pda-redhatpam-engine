@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
@@ -45,16 +46,17 @@ public class KieTaskService implements TaskService {
     //CHECKSTYLE:ON
 
     @Override
-    public PagedRestResponse<Task> list(Connection connection, PagedListRequest request) {
+    public PagedRestResponse<Task> list(Connection connection, AuthenticatedUser user, PagedListRequest request) {
         RestTemplate restTemplate = restTemplateBuilder
                 .basicAuthorization(connection.getUsername(), connection.getPassword())
                 .build();
 
         final Map<String, List<KieProcessVariable>> cachedVariables = new ConcurrentHashMap<>();
 
-        List<Task> result = getTasks(restTemplate, connection, request).stream() //Get Tasks
+        List<Task> result = getTasks(restTemplate, connection, user, request).stream() //Get Tasks
                 .map(t -> { //Get Process Instance Variables
-                    t.putAll(getProcessVariables(cachedVariables, restTemplate, connection, t.getProcessInstanceId())
+                    t.putAll(getProcessVariables(cachedVariables, restTemplate, connection, user,
+                                t.getProcessInstanceId())
                             .stream().filter(e -> e.getValue() != null)
                             .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -65,7 +67,7 @@ public class KieTaskService implements TaskService {
 
         result.stream().parallel()
                 .forEach(t -> { //Get Task Details
-                    t.putAll(getTaskDetails(restTemplate, connection, t.getContainerId(), t.getId())
+                    t.putAll(getTaskDetails(restTemplate, connection, user, t.getContainerId(), t.getId())
                             .getData().entrySet().stream().filter(e -> e.getValue() != null)
                             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -75,22 +77,22 @@ public class KieTaskService implements TaskService {
     }
 
     @Override
-    public Task get(Connection connection, String id) {
+    public Task get(Connection connection, AuthenticatedUser user, String id) {
         RestTemplate restTemplate = restTemplateBuilder
                 .basicAuthorization(connection.getUsername(), connection.getPassword())
                 .build();
 
         //Get Task
-        KieTask task = getTask(restTemplate, connection, id);
+        KieTask task = getTask(restTemplate, connection, user, id);
 
         // Get TaskDetails
-        task.putAll(getTaskDetails(restTemplate, connection, task.getContainerId(), task.getId())
+        task.putAll(getTaskDetails(restTemplate, connection, user, task.getContainerId(), task.getId())
                 .getData().entrySet().stream().filter(e -> e.getValue() != null)
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
         // Get ProcessInstanceVariables
-        task.putAll(getProcessVariables(restTemplate, connection, task.getProcessInstanceId())
+        task.putAll(getProcessVariables(restTemplate, connection, user, task.getProcessInstanceId())
                 .stream().filter(e -> e.getValue() != null)
                 .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -98,34 +100,40 @@ public class KieTaskService implements TaskService {
         return task;
     }
 
-    private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, PagedListRequest request) {
-        KieTasksResponse response = Optional.ofNullable(restTemplate.getForObject(
-                connection.getUrl() + TASK_LIST_URL + createFilters(request), KieTasksResponse.class))
+    private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
+            PagedListRequest request) {
+        String url = connection.getUrl() + TASK_LIST_URL + createUserFilter(connection, user) + createFilters(request);
+
+        KieTasksResponse response = Optional.ofNullable(restTemplate.getForObject(url, KieTasksResponse.class))
                 .orElseThrow(BadResponseException::new);
 
         return Optional.ofNullable(response.getTasks())
                 .orElse(Collections.emptyList());
     }
 
-    private KieTask getTask(RestTemplate restTemplate, Connection connection, String id) {
-        return Optional.ofNullable(restTemplate.getForObject(
-                connection.getUrl() + TASK_URL.replace("{tInstanceId}", id), KieTask.class))
+    private KieTask getTask(RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String id) {
+        String url = connection.getUrl() + TASK_URL.replace("{tInstanceId}", id) +
+                createUserFilter(connection, user);
+
+        return Optional.ofNullable(restTemplate.getForObject(url, KieTask.class))
                 .orElseThrow(BadResponseException::new);
     }
 
     private List<KieProcessVariable> getProcessVariables(RestTemplate restTemplate, Connection connection,
-            String processInstanceId) {
-        return getProcessVariables(new HashMap<>(), restTemplate, connection, processInstanceId);
+            AuthenticatedUser user, String processInstanceId) {
+        return getProcessVariables(new HashMap<>(), restTemplate, connection, user, processInstanceId);
     }
 
     private List<KieProcessVariable> getProcessVariables(Map<String,List<KieProcessVariable>> cachedVariables,
-            RestTemplate restTemplate, Connection connection, String processInstanceId) {
+            RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String processInstanceId) {
 
         if (cachedVariables.containsKey(processInstanceId)) {
             return cachedVariables.get(processInstanceId);
         } else {
-            List<KieProcessVariable> processVariables = Optional.ofNullable(restTemplate.getForObject(
-                    connection.getUrl() + PROCESS_VARIABLES_URL, KieProcessVariablesResponse.class, processInstanceId))
+            String url = connection.getUrl() + PROCESS_VARIABLES_URL + createUserFilter(connection, user);
+
+            List<KieProcessVariable> processVariables = Optional.ofNullable(restTemplate.getForObject(url,
+                        KieProcessVariablesResponse.class, processInstanceId))
                     .orElseThrow(BadResponseException::new)
                     .getVariables();
 
@@ -134,12 +142,13 @@ public class KieTaskService implements TaskService {
         }
     }
 
-    private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection, String containerId,
-            String taskInstanceId) {
-
+    private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
+            String containerId, String taskInstanceId) {
         try {
-            return Optional.ofNullable(restTemplate.getForObject(
-                    connection.getUrl() + TASK_DETAILS_URL, KieTaskDetails.class, containerId, taskInstanceId))
+            String url = connection.getUrl() + TASK_DETAILS_URL + createUserFilter(connection, user);
+
+            return Optional.ofNullable(restTemplate.getForObject(url, KieTaskDetails.class, containerId,
+                        taskInstanceId))
                     .orElseThrow(BadResponseException::new);
         } catch (HttpServerErrorException e) {
             if (e.getStatusCode().is5xxServerError()) {
@@ -153,10 +162,15 @@ public class KieTaskService implements TaskService {
         }
     }
 
-    private String createFilters(PagedListRequest request) {
+    public String createUserFilter(Connection connection, AuthenticatedUser user) {
+        String username = user != null ? user.getAccessToken().getPreferredUsername() : connection.getUsername();
+        return "?user=" + username;
+    }
+
+    public String createFilters(PagedListRequest request) {
         StringBuilder queryUrl = new StringBuilder();
 
-        queryUrl.append(String.format("?page=%d&pageSize=%d",
+        queryUrl.append(String.format("&page=%d&pageSize=%d",
                 request.getPage() - 1, request.getPageSize()));
 
         if (request.getSort() != null) {
