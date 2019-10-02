@@ -112,8 +112,8 @@ public class KieTaskService implements TaskService {
     }
 
     private KieTask getTask(RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String id) {
-        String url = connection.getUrl() + TASK_URL.replace("{tInstanceId}", id) +
-                createUserFilter(connection, user);
+        String url = connection.getUrl() + TASK_URL.replace("{tInstanceId}", id)
+                + createUserFilter(connection, user);
 
         return Optional.ofNullable(restTemplate.getForObject(url, KieTask.class))
                 .orElseThrow(BadResponseException::new);
@@ -163,7 +163,7 @@ public class KieTaskService implements TaskService {
     }
 
     public String createUserFilter(Connection connection, AuthenticatedUser user) {
-        String username = user != null ? user.getAccessToken().getPreferredUsername() : connection.getUsername();
+        String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
         return "?user=" + username;
     }
 
