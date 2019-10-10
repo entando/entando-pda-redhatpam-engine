@@ -90,6 +90,21 @@ public class KieTaskTestHelper {
         return result;
     }
 
+    public List<KieTask> createKieTaskListUser() {
+        List<KieTask> result = new ArrayList<>();
+        result.add(KieTask.builder()
+                .id(TASK_ID_1)
+                .name(TASK_NAME_1)
+                .processInstanceId(PROCESS_INSTANCE_ID_1)
+                .extraProperty(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1)
+                .extraProperty(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_VALUE_2)
+                .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
+                .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
+                .build());
+
+        return result;
+    }
+
     public List<KieProcessVariable> createKieProcessVariables() {
         return Arrays.asList(
                 KieProcessVariable.builder()
