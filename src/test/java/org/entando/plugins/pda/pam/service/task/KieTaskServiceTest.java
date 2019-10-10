@@ -87,7 +87,10 @@ public class KieTaskServiceTest {
         PagedRestResponse<Task> tasks = kieTaskService.list(connection, user, new PagedListRequest());
 
         verify(restTemplate).getForObject(eq(connection.getUrl() + KieTaskService.TASK_LIST_URL
-                + String.format("?user=%s&page=%d&pageSize=%d", connection.getUsername(), 0, 100)), eq(KieTasksResponse.class));
+                        + String
+                        .format("?user=%s&page=%d&pageSize=%d&sort=%s&sortOrder=%s", connection.getUsername(), 0, 100, "id",
+                                true)),
+                eq(KieTasksResponse.class));
 
         verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
                 eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1));
@@ -221,7 +224,10 @@ public class KieTaskServiceTest {
         PagedRestResponse<Task> tasks = kieTaskService.list(connection, user, new PagedListRequest());
 
         verify(restTemplate).getForObject(eq(connection.getUrl() + KieTaskService.TASK_LIST_URL
-                + String.format("?user=%s&page=%d&pageSize=%d", username, 0, 100)), eq(KieTasksResponse.class));
+                        + String
+                        .format("?user=%s&page=%d&pageSize=%d&sort=%s&sortOrder=%s", username, 0, 100, "id",
+                                true)),
+                eq(KieTasksResponse.class));
 
         verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
                 eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1));
