@@ -1,21 +1,21 @@
 package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.matches;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
-import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
 import org.entando.web.request.Filter;
@@ -25,217 +25,128 @@ import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.representations.AccessToken;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.ExpectedCount;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 public class KieTaskServiceTest {
 
     private KieTaskService kieTaskService;
 
-    private RestTemplate restTemplate;
+    private MockRestServiceServer mockServer;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Before
-    public void setup() {
-        restTemplate = mock(RestTemplate.class);
+    public void setUp() {
+        RestTemplate restTemplate = new RestTemplate();
         RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
         when(restTemplateBuilder.basicAuthorization(anyString(), anyString())).thenReturn(restTemplateBuilder);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        mockServer = MockRestServiceServer.createServer(restTemplate);
 
         kieTaskService = new KieTaskService(restTemplateBuilder);
     }
 
     @Test
-    public void shouldListTasksFromApi() {
-        Connection connection = Connection.builder()
-                .username("myUsername")
-                .password("myPassword")
-                .schema("http")
-                .host("myurl")
-                .port("8080")
-                .build();
+    public void shouldListTasksFromApi() throws Exception {
+        // Given
+        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
+                        MediaType.APPLICATION_JSON));
+        mockVariablesRequest(ExpectedCount.times(2));
+        mockTasksRequest(ExpectedCount.manyTimes());
 
-        AuthenticatedUser user = null;
+        // When
+        PagedRestResponse<Task> tasks = kieTaskService.list(dummyConnection(), null, new PagedListRequest());
 
-        Pattern pTaskListPattern = Pattern.compile((connection.getUrl() + KieTaskService.TASK_LIST_URL
-                    + "\\?user=.+"
-                    + "&page=%d&pageSize=%d")
-                .replace("%d", ".+")
-                .replace("%s", ".+"));
-
-        Pattern pInstanceVariablesPattern = Pattern.compile((connection.getUrl() + KieTaskService.PROCESS_VARIABLES_URL
-                    + "\\?user=.+")
-                .replace("{pInstanceId}", ".+"));
-
-        Pattern tDetailsPattern = Pattern.compile((connection.getUrl() + KieTaskService.TASK_DETAILS_URL
-                    + "\\?user=.+")
-                .replace("{tInstanceId}", ".+")
-                .replace("{containerId}", ".+"));
-
-        when(restTemplate.getForObject(matches(pTaskListPattern), eq(KieTasksResponse.class))).thenReturn(
-                new KieTasksResponse(KieTaskTestHelper.createKieTaskList()));
-
-        when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
-                eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
-
-        when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
-                eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
-
-        when(restTemplate.getForObject(matches(tDetailsPattern), eq(KieTaskDetails.class), any(), any())).thenReturn(
-                KieTaskTestHelper.createKieTaskDetails());
-
-        PagedRestResponse<Task> tasks = kieTaskService.list(connection, user, new PagedListRequest());
-
-        verify(restTemplate).getForObject(eq(connection.getUrl() + KieTaskService.TASK_LIST_URL
-                        + String
-                        .format("?user=%s&page=%d&pageSize=%d&sort=%s&sortOrder=%s", connection.getUsername(), 0, 100, "id",
-                                true)),
-                eq(KieTasksResponse.class));
-
-        verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
-                eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1));
-
-        verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
-                eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2));
-
-        verify(restTemplate, times(tasks.getPayload().size())).getForObject(matches(tDetailsPattern), eq(
-                KieTaskDetails.class), any(), any());
-
+        // Then
+        mockServer.verify();
         assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListFull());
     }
 
     @Test
-    public void shouldListTasksFromApiWithFilterAndSort() {
-        Connection connection = Connection.builder()
-                .username("myUsername")
-                .password("myPassword")
-                .schema("http")
-                .host("myurl")
-                .port("8080")
-                .build();
+    public void shouldListTasksFromApiWithFilterAndSort() throws Exception {
+        // Given
+        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(queryParam("page", "0"))
+                .andExpect(queryParam("pageSize", "10"))
+                .andExpect(queryParam("sort", "task-id"))
+                .andExpect(queryParam("sortOrder", "false"))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
+                        MediaType.APPLICATION_JSON));
+        mockVariablesRequest(ExpectedCount.times(2));
+        mockTasksRequest(ExpectedCount.manyTimes());
 
-        AuthenticatedUser user = null;
+        // When
+        PagedRestResponse<Task> tasks = kieTaskService
+                .list(dummyConnection(), null, new PagedListRequest(1, 10, "task-id", Filter.DESC_ORDER));
 
-        Pattern pTaskListPattern = Pattern.compile((connection.getUrl() + KieTaskService.TASK_LIST_URL
-                + "\\?user=.+"
-                + "&page=%d&pageSize=%d")
-                .replace("%d", ".+")
-                .replace("%s", ".+"));
-
-        Pattern pInstanceVariablesPattern = Pattern.compile((connection.getUrl() + KieTaskService.PROCESS_VARIABLES_URL
-                + "\\?user=.+")
-                .replace("{pInstanceId}", ".+"));
-
-        Pattern tDetailsPattern = Pattern.compile((connection.getUrl() + KieTaskService.TASK_DETAILS_URL
-                + "\\?user=.+")
-                .replace("{tInstanceId}", ".+")
-                .replace("{containerId}", ".+"));
-
-        when(restTemplate.getForObject(matches(pTaskListPattern), eq(KieTasksResponse.class))).thenReturn(
-                new KieTasksResponse(KieTaskTestHelper.createKieTaskList()));
-
-        when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
-                eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
-
-        when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
-                eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
-
-        when(restTemplate.getForObject(matches(tDetailsPattern), eq(KieTaskDetails.class), any(), any())).thenReturn(
-                KieTaskTestHelper.createKieTaskDetails());
-
-        PagedRestResponse<Task> tasks = kieTaskService.list(connection, user, new PagedListRequest(1, 10, "task-id", Filter.DESC_ORDER));
-
-        verify(restTemplate).getForObject(eq(connection.getUrl() + KieTaskService.TASK_LIST_URL
-                    + String.format("?user=%s&page=%d&pageSize=%d&sort=%s&sortOrder=%s", connection.getUsername(), 0, 10, "task-id", false)),
-                eq(KieTasksResponse.class));
-
-        verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
-                eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1));
-
-        verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
-                eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2));
-
-        verify(restTemplate, times(tasks.getPayload().size())).getForObject(matches(tDetailsPattern), eq(
-                KieTaskDetails.class), any(), any());
-
+        // Then
+        mockServer.verify();
         assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListFull());
     }
 
     @Test
-    public void shouldListUsingAuthenticatedUser() {
-        Connection connection = Connection.builder()
-                .username("myUsername")
-                .password("myPassword")
-                .schema("http")
-                .host("myurl")
-                .port("8080")
-                .build();
-
-        AuthenticatedUser user = mock(AuthenticatedUser.class);
-        AccessToken token = mock(AccessToken.class);
+    public void shouldListUsingAuthenticatedUser() throws Exception {
+        // Given
         String username = "chuck_norris";
+        AuthenticatedUser user = dummyUser(username);
+        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(queryParam("user", username))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskListUser())),
+                        MediaType.APPLICATION_JSON));
+        mockVariablesRequest(ExpectedCount.once());
+        mockTasksRequest(ExpectedCount.once());
 
-        when(user.getAccessToken())
-            .thenReturn(token);
+        // When
+        PagedRestResponse<Task> tasks = kieTaskService.list(dummyConnection(), user, new PagedListRequest());
 
-        when(token.getPreferredUsername())
-            .thenReturn(username);
-
-        Pattern pTaskListPatternWithUser = Pattern.compile((connection.getUrl() + KieTaskService.TASK_LIST_URL
-                + "\\?user=" + username
-                + "&page=%d&pageSize=%d")
-                .replace("%d", ".+")
-                .replace("%s", ".+"));
-
-        Pattern pTaskListPatternWithConnection = Pattern.compile((connection.getUrl() + KieTaskService.TASK_LIST_URL
-                + "\\?user=" + connection.getUsername()
-                + "&page=%d&pageSize=%d")
-                .replace("%d", ".+")
-                .replace("%s", ".+"));
-
-        Pattern pInstanceVariablesPattern = Pattern.compile((connection.getUrl() + KieTaskService.PROCESS_VARIABLES_URL
-                + "\\?user=" + username)
-                .replace("{pInstanceId}", ".+"));
-
-        Pattern tDetailsPattern = Pattern.compile((connection.getUrl() + KieTaskService.TASK_DETAILS_URL
-                + "\\?user=" + username)
-                .replace("{tInstanceId}", ".+")
-                .replace("{containerId}", ".+"));
-
-        when(restTemplate.getForObject(matches(pTaskListPatternWithUser), eq(KieTasksResponse.class))).thenReturn(
-                new KieTasksResponse(KieTaskTestHelper.createKieTaskListUser()));
-
-        when(restTemplate.getForObject(matches(pTaskListPatternWithConnection), eq(KieTasksResponse.class))).thenReturn(
-                new KieTasksResponse(KieTaskTestHelper.createKieTaskListFull()));
-
-        when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
-                eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
-
-        when(restTemplate.getForObject(matches(pInstanceVariablesPattern), eq(KieProcessVariablesResponse.class),
-                eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_2))).thenReturn(
-                new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables()));
-
-        when(restTemplate.getForObject(matches(tDetailsPattern), eq(KieTaskDetails.class), any(), any())).thenReturn(
-                KieTaskTestHelper.createKieTaskDetails());
-
-        PagedRestResponse<Task> tasks = kieTaskService.list(connection, user, new PagedListRequest());
-
-        verify(restTemplate).getForObject(eq(connection.getUrl() + KieTaskService.TASK_LIST_URL
-                        + String
-                        .format("?user=%s&page=%d&pageSize=%d&sort=%s&sortOrder=%s", username, 0, 100, "id",
-                                true)),
-                eq(KieTasksResponse.class));
-
-        verify(restTemplate, times(1)).getForObject(matches(pInstanceVariablesPattern),
-                eq(KieProcessVariablesResponse.class), eq(KieTaskTestHelper.PROCESS_INSTANCE_ID_1));
-
-        verify(restTemplate, times(tasks.getPayload().size())).getForObject(matches(tDetailsPattern), eq(
-                KieTaskDetails.class), any(), any());
-
+        // Then
+        mockServer.verify();
         assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListUser());
     }
-}
 
+    private void mockVariablesRequest(ExpectedCount count) throws JsonProcessingException {
+        mockServer.expect(count, requestTo(containsString("/variables/instances")))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(mapper.writeValueAsString(
+                        new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables())),
+                        MediaType.APPLICATION_JSON));
+    }
+
+    private void mockTasksRequest(ExpectedCount count) throws JsonProcessingException {
+        mockServer.expect(count, requestTo(containsString("/tasks")))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(KieTaskTestHelper.createKieTaskDetails()),
+                        MediaType.APPLICATION_JSON));
+    }
+
+    private AuthenticatedUser dummyUser(String username) {
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        AccessToken token = mock(AccessToken.class);
+        when(user.getAccessToken())
+                .thenReturn(token);
+        when(token.getPreferredUsername())
+                .thenReturn(username);
+        return user;
+    }
+
+    private Connection dummyConnection() {
+        return Connection.builder()
+                .username("myUsername")
+                .password("myPassword")
+                .schema("http")
+                .host("myurl")
+                .port("8080")
+                .build();
+    }
+}
