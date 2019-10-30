@@ -114,6 +114,70 @@ public class KieTaskServiceTest {
         assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListUser());
     }
 
+    @Test
+    public void shouldReturnFlattenData() throws Exception {
+        // Given
+        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(
+                                new KieTasksResponse(KieTaskTestHelper.createKieTaskListWithEmbeddedData())),
+                        MediaType.APPLICATION_JSON));
+        mockVariablesRequest(ExpectedCount.once());
+        mockTasksRequest(ExpectedCount.manyTimes());
+
+        // When
+        PagedRestResponse<Task> tasks = kieTaskService.list(dummyConnection(), null, new PagedListRequest());
+
+        // Then
+        mockServer.verify();
+        assertThat(tasks.getPayload().get(0).getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2))
+                .isNotNull();
+        assertThat(tasks.getPayload().get(1).getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2))
+                .isNotNull();
+    }
+
+    @Test
+    public void shouldGetTask() throws Exception {
+        // Given
+        Task generatedTask = KieTaskTestHelper.generateKieTask();
+        mockServer.expect(requestTo(
+                containsString(KieTaskService.TASK_URL.replace("{tInstanceId}", generatedTask.getId()))))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(generatedTask),
+                        MediaType.APPLICATION_JSON));
+        mockTasksRequest(ExpectedCount.once());
+        mockVariablesRequest(ExpectedCount.once());
+
+        // When
+        Task task = kieTaskService.get(dummyConnection(), null, generatedTask.getId());
+
+        // Then
+        mockServer.verify();
+        assertThat(generatedTask).isEqualTo(task);
+    }
+
+    @Test
+    public void shouldReturnFlattenDataOnGet() throws Exception {
+        // Given
+        Task createdTask = KieTaskTestHelper.createKieTaskListWithEmbeddedData().get(0);
+        mockServer.expect(requestTo(
+                containsString(KieTaskService.TASK_URL.replace("{tInstanceId}", createdTask.getId()))))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(createdTask),
+                        MediaType.APPLICATION_JSON));
+        mockTasksRequest(ExpectedCount.once());
+        mockVariablesRequest(ExpectedCount.once());
+
+        // When
+        Task task = kieTaskService.get(dummyConnection(), null, createdTask.getId());
+
+        // Then
+        assertThat(task.getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2)).isNotNull();
+    }
+
     private void mockVariablesRequest(ExpectedCount count) throws JsonProcessingException {
         mockServer.expect(count, requestTo(containsString("/variables/instances")))
                 .andExpect(method(HttpMethod.GET))
