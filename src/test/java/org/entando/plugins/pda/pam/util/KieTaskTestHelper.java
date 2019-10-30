@@ -1,9 +1,11 @@
 package org.entando.plugins.pda.pam.util;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang.RandomStringUtils;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
@@ -35,6 +37,9 @@ public class KieTaskTestHelper {
     public static final String EXTRA_VARS_ATTRIBUTE_4 = "attribute4";
     public static final String EXTRA_VARS_VALUE_4 = "4";
 
+    public static final String FIELD_1 = "field1";
+    public static final String FIELD_2 = "field2";
+
     public List<KieTask> createKieTaskList() {
         List<KieTask> result = new ArrayList<>();
         result.add(KieTask.builder()
@@ -51,6 +56,25 @@ public class KieTaskTestHelper {
                 .id(TASK_ID_3)
                 .name(TASK_NAME_3)
                 .processInstanceId(PROCESS_INSTANCE_ID_2)
+                .build());
+        return result;
+    }
+
+    public List<KieTask> createKieTaskListWithEmbeddedData() {
+        List<KieTask> result = new ArrayList<>();
+        result.add(KieTask.builder()
+                .id(TASK_ID_1)
+                .name(TASK_NAME_1)
+                .processInstanceId(PROCESS_INSTANCE_ID_1)
+                .extraProperty(FIELD_1,
+                        ImmutableMap.of("com.organization.mycustomtype", ImmutableMap.of(FIELD_2, "value")))
+                .build());
+        result.add(KieTask.builder()
+                .id(TASK_ID_2)
+                .name(TASK_NAME_2)
+                .processInstanceId(PROCESS_INSTANCE_ID_1)
+                .extraProperty(FIELD_1,
+                        ImmutableMap.of("com.organization.mycustomtype", ImmutableMap.of(FIELD_2, "value")))
                 .build());
         return result;
     }
@@ -122,6 +146,14 @@ public class KieTaskTestHelper {
         return KieTaskDetails.builder()
                 .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
                 .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
+                .build();
+    }
+
+    public KieTask generateKieTask() {
+        return KieTask.builder()
+                .id(RandomStringUtils.randomNumeric(10))
+                .name(RandomStringUtils.randomAlphabetic(20))
+                .processInstanceId(RandomStringUtils.randomNumeric(10))
                 .build();
     }
 }

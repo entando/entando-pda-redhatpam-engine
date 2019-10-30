@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.keycloak.security.AuthenticatedUser;
@@ -20,6 +19,7 @@ import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesRespons
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
+import org.entando.plugins.pda.pam.service.task.util.TaskUtil;
 import org.entando.web.exception.BadResponseException;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
@@ -35,8 +35,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class KieTaskService implements TaskService {
 
-    @NonNull
-    private RestTemplateBuilder restTemplateBuilder;
+    private final RestTemplateBuilder restTemplateBuilder;
 
     //CHECKSTYLE:OFF
     public static final String TASK_LIST_URL = "/server/queries/tasks/instances/pot-owners";
@@ -56,7 +55,7 @@ public class KieTaskService implements TaskService {
         List<Task> result = getTasks(restTemplate, connection, user, request).stream() //Get Tasks
                 .map(t -> { //Get Process Instance Variables
                     t.putAll(getProcessVariables(cachedVariables, restTemplate, connection, user,
-                                t.getProcessInstanceId())
+                            t.getProcessInstanceId())
                             .stream().filter(e -> e.getValue() != null)
                             .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -73,6 +72,7 @@ public class KieTaskService implements TaskService {
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
                 });
 
+        TaskUtil.flatProperties(result);
         return new PagedMetadata<>(request, result).toRestResponse(); //TODO how to efficiently query total tasks size?
     }
 
@@ -97,6 +97,7 @@ public class KieTaskService implements TaskService {
                 .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
+        TaskUtil.flatProperties(task);
         return task;
     }
 
@@ -124,7 +125,7 @@ public class KieTaskService implements TaskService {
         return getProcessVariables(new HashMap<>(), restTemplate, connection, user, processInstanceId);
     }
 
-    private List<KieProcessVariable> getProcessVariables(Map<String,List<KieProcessVariable>> cachedVariables,
+    private List<KieProcessVariable> getProcessVariables(Map<String, List<KieProcessVariable>> cachedVariables,
             RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String processInstanceId) {
 
         if (cachedVariables.containsKey(processInstanceId)) {
@@ -133,7 +134,7 @@ public class KieTaskService implements TaskService {
             String url = connection.getUrl() + PROCESS_VARIABLES_URL + createUserFilter(connection, user);
 
             List<KieProcessVariable> processVariables = Optional.ofNullable(restTemplate.getForObject(url,
-                        KieProcessVariablesResponse.class, processInstanceId))
+                    KieProcessVariablesResponse.class, processInstanceId))
                     .orElseThrow(BadResponseException::new)
                     .getVariables();
 
@@ -148,7 +149,7 @@ public class KieTaskService implements TaskService {
             String url = connection.getUrl() + TASK_DETAILS_URL + createUserFilter(connection, user);
 
             return Optional.ofNullable(restTemplate.getForObject(url, KieTaskDetails.class, containerId,
-                        taskInstanceId))
+                    taskInstanceId))
                     .orElseThrow(BadResponseException::new);
         } catch (HttpServerErrorException e) {
             if (e.getStatusCode().is5xxServerError()) {
@@ -180,5 +181,4 @@ public class KieTaskService implements TaskService {
 
         return queryUrl.toString();
     }
-
 }
