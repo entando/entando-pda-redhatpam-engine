@@ -1,7 +1,6 @@
 package org.entando.plugins.pda.pam.engine;
 
 import org.entando.plugins.pda.core.engine.Engine;
-import org.entando.plugins.pda.core.service.task.ProcessService;
 import org.entando.plugins.pda.pam.service.process.KieProcessService;
 import org.entando.plugins.pda.pam.service.task.KieTaskService;
 import org.springframework.stereotype.Component;

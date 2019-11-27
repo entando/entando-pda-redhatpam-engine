@@ -1,15 +1,9 @@
 package org.entando.plugins.pda.pam.util;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang.RandomStringUtils;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
-import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
-import org.entando.plugins.pda.pam.service.task.model.KieTask;
-import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.kie.server.api.model.KieContainerResource;
 import org.kie.server.api.model.KieContainerResourceList;
 import org.kie.server.api.model.ServiceResponse;

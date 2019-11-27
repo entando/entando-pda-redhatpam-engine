@@ -1,10 +1,12 @@
 package org.entando.plugins.pda.pam.service;
 
+import lombok.experimental.UtilityClass;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 
+@UtilityClass
 public class KieUtils {
 
     public static String createUserFilter(Connection connection, AuthenticatedUser user) {

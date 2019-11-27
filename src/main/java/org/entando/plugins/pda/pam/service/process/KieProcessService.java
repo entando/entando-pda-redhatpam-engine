@@ -38,10 +38,10 @@ public class KieProcessService implements ProcessService {
         List<ProcessDefinition> result = new ArrayList<>();
 
         PagedListRequest pageRequest = new PagedListRequest();
-        pageRequest.setPageSize(2000000000); //Set max page size to get all results
+        pageRequest.setPageSize(2_000_000_000); //Set max page size to get all results
 
         List<KieProcessDefinition> response = getProcessesDefinitions(restTemplate, connection, pageRequest);
-        while(response.size() > 0) { //Continue requesting pages if total results bigger than max page size
+        while (!response.isEmpty()) { //Continue requesting pages if total results bigger than max page size
             result.addAll(response);
             pageRequest.setPage(pageRequest.getPage() + 1);
 

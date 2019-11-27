@@ -2,11 +2,9 @@ package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -20,17 +18,13 @@ import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.plugins.pda.pam.util.KieProcessTestHelper;
-import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.junit.Before;
 import org.junit.Test;
-import org.kie.server.client.KieServicesClient;
-import org.kie.server.client.KieServicesFactory;
 import org.mockito.Mockito;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,7 +49,7 @@ public class KieProcessServiceTest {
     @Test
     public void shouldListProcessDefinitions() throws Exception {
         // Given
-        PagedListRequest pageRequest = new PagedListRequest(1, 2000000000, null, null);
+        PagedListRequest pageRequest = new PagedListRequest(1, 2_000_000_000, null, null);
         mockProcessDefinitionList(pageRequest);
 
         pageRequest.setPage(2);
@@ -72,7 +66,7 @@ public class KieProcessServiceTest {
     @Test
     public void shouldListProcessDefinitionsWithFilterAndSort() throws Exception {
         // Given
-        PagedListRequest pageRequest = new PagedListRequest(1, 2000000000, null, null);
+        PagedListRequest pageRequest = new PagedListRequest(1, 2_000_000_000, null, null);
         mockProcessDefinitionList(pageRequest);
 
         pageRequest.setPage(2);
