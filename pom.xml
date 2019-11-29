@@ -89,7 +89,6 @@
         <java.version>1.8</java.version>
         <entando.commons.version>1.0.0-SNAPSHOT</entando.commons.version>
         <pmd-version>6.18.0</pmd-version>
-        <powermock.version>2.0.2</powermock.version>
     </properties>
 
     <dependencies>
@@ -113,11 +112,6 @@
             <groupId>com.github.wnameless.json</groupId>
             <artifactId>json-flattener</artifactId>
             <version>0.7.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.kie.server</groupId>
-            <artifactId>kie-server-client</artifactId>
-            <version>7.26.0.Final</version>
         </dependency>
 
         <!-- Testing -->
@@ -149,13 +143,6 @@
             <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Testing -->
 
     </dependencies>

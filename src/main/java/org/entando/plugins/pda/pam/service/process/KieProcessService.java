@@ -25,6 +25,8 @@ public class KieProcessService implements ProcessService {
 
     private final RestTemplateBuilder restTemplateBuilder;
 
+    public static final int MAX_KIE_PAGE_SIZE = 2_000_000_000;
+
     //CHECKSTYLE:OFF
     public static final String PROCESS_DEFINITION_LIST_URL = "/queries/processes/definitions";
     //CHECKSTYLE:ON
@@ -38,7 +40,7 @@ public class KieProcessService implements ProcessService {
         List<ProcessDefinition> result = new ArrayList<>();
 
         PagedListRequest pageRequest = new PagedListRequest();
-        pageRequest.setPageSize(2_000_000_000); //Set max page size to get all results
+        pageRequest.setPageSize(MAX_KIE_PAGE_SIZE); //Set max page size to get all results
 
         List<KieProcessDefinition> response = getProcessesDefinitions(restTemplate, connection, pageRequest);
         while (!response.isEmpty()) { //Continue requesting pages if total results bigger than max page size

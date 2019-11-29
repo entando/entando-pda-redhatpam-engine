@@ -49,24 +49,7 @@ public class KieProcessServiceTest {
     @Test
     public void shouldListProcessDefinitions() throws Exception {
         // Given
-        PagedListRequest pageRequest = new PagedListRequest(1, 2_000_000_000, null, null);
-        mockProcessDefinitionList(pageRequest);
-
-        pageRequest.setPage(2);
-        mockProcessDefinitionList(pageRequest);
-
-        // When
-        List<ProcessDefinition> processDefinitions = kieProcessService.listDefinitions(dummyConnection());
-
-        // Then
-        mockServer.verify();
-        assertThat(processDefinitions).isEqualTo(KieProcessTestHelper.createKieProcessDefinitionList());
-    }
-
-    @Test
-    public void shouldListProcessDefinitionsWithFilterAndSort() throws Exception {
-        // Given
-        PagedListRequest pageRequest = new PagedListRequest(1, 2_000_000_000, null, null);
+        PagedListRequest pageRequest = new PagedListRequest(1, KieProcessService.MAX_KIE_PAGE_SIZE, null, null);
         mockProcessDefinitionList(pageRequest);
 
         pageRequest.setPage(2);
