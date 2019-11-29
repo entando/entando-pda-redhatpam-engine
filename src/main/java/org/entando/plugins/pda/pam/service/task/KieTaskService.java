@@ -14,6 +14,7 @@ import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
+import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
@@ -21,7 +22,6 @@ import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
 import org.entando.plugins.pda.pam.service.task.util.TaskUtil;
 import org.entando.web.exception.BadResponseException;
-import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedMetadata;
 import org.entando.web.response.PagedRestResponse;
@@ -38,10 +38,10 @@ public class KieTaskService implements TaskService {
     private final RestTemplateBuilder restTemplateBuilder;
 
     //CHECKSTYLE:OFF
-    public static final String TASK_LIST_URL = "/server/queries/tasks/instances/pot-owners";
-    public static final String TASK_URL = "/server/queries/tasks/instances/{tInstanceId}";
-    public static final String TASK_DETAILS_URL = "/server/containers/{containerId}/tasks/{tInstanceId}?withInputData=true&withOutputData=true";
-    public static final String PROCESS_VARIABLES_URL = "/server/queries/processes/instances/{pInstanceId}/variables/instances";
+    public static final String TASK_LIST_URL = "/queries/tasks/instances/pot-owners";
+    public static final String TASK_URL = "/queries/tasks/instances/{tInstanceId}";
+    public static final String TASK_DETAILS_URL = "/containers/{containerId}/tasks/{tInstanceId}?withInputData=true&withOutputData=true";
+    public static final String PROCESS_VARIABLES_URL = "/queries/processes/instances/{pInstanceId}/variables/instances";
     //CHECKSTYLE:ON
 
     @Override
@@ -103,7 +103,8 @@ public class KieTaskService implements TaskService {
 
     private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
             PagedListRequest request) {
-        String url = connection.getUrl() + TASK_LIST_URL + createUserFilter(connection, user) + createFilters(request);
+        String url = connection.getUrl() + TASK_LIST_URL + KieUtils.createUserFilter(connection, user)
+                + KieUtils.createFilters(request);
 
         KieTasksResponse response = Optional.ofNullable(restTemplate.getForObject(url, KieTasksResponse.class))
                 .orElseThrow(BadResponseException::new);
@@ -114,7 +115,7 @@ public class KieTaskService implements TaskService {
 
     private KieTask getTask(RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String id) {
         String url = connection.getUrl() + TASK_URL.replace("{tInstanceId}", id)
-                + createUserFilter(connection, user);
+                + KieUtils.createUserFilter(connection, user);
 
         return Optional.ofNullable(restTemplate.getForObject(url, KieTask.class))
                 .orElseThrow(BadResponseException::new);
@@ -131,7 +132,7 @@ public class KieTaskService implements TaskService {
         if (cachedVariables.containsKey(processInstanceId)) {
             return cachedVariables.get(processInstanceId);
         } else {
-            String url = connection.getUrl() + PROCESS_VARIABLES_URL + createUserFilter(connection, user);
+            String url = connection.getUrl() + PROCESS_VARIABLES_URL + KieUtils.createUserFilter(connection, user);
 
             List<KieProcessVariable> processVariables = Optional.ofNullable(restTemplate.getForObject(url,
                     KieProcessVariablesResponse.class, processInstanceId))
@@ -146,7 +147,7 @@ public class KieTaskService implements TaskService {
     private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
             String containerId, String taskInstanceId) {
         try {
-            String url = connection.getUrl() + TASK_DETAILS_URL + createUserFilter(connection, user);
+            String url = connection.getUrl() + TASK_DETAILS_URL + KieUtils.createUserFilter(connection, user);
 
             return Optional.ofNullable(restTemplate.getForObject(url, KieTaskDetails.class, containerId,
                     taskInstanceId))
@@ -161,24 +162,5 @@ public class KieTaskService implements TaskService {
             log.error("Error retrieving TaskDetails: container={}, task={}", containerId, taskInstanceId);
             throw e;
         }
-    }
-
-    public String createUserFilter(Connection connection, AuthenticatedUser user) {
-        String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
-        return "?user=" + username;
-    }
-
-    public String createFilters(PagedListRequest request) {
-        StringBuilder queryUrl = new StringBuilder();
-
-        queryUrl.append(String.format("&page=%d&pageSize=%d",
-                request.getPage() - 1, request.getPageSize()));
-
-        if (request.getSort() != null) {
-            queryUrl.append(String.format("&sort=%s&sortOrder=%s",
-                    request.getSort(), request.getDirection().equals(Filter.ASC_ORDER)));
-        }
-
-        return queryUrl.toString();
     }
 }
