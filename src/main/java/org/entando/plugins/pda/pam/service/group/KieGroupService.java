@@ -27,10 +27,7 @@ public class KieGroupService implements GroupService {
                     .getAssociatedEntityDefinitions(containerId, processId);
             String[] inGroups = associatedEntityDefinitions.getAssociatedEntities().values().stream()
                     .flatMap(Arrays::stream).toArray(String[]::new);
-            if (inGroups.length == 0) {
-                return Collections.emptyList();
-            }
-            return customQueryService.getGroups(connection, inGroups);
+            return inGroups.length == 0 ? Collections.emptyList() : customQueryService.getGroups(connection, inGroups);
         }
         return customQueryService.getGroups(connection);
     }

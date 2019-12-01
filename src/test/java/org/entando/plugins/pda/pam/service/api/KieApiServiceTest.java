@@ -3,6 +3,8 @@ package org.entando.plugins.pda.pam.service.api;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -21,6 +23,7 @@ import org.springframework.http.HttpStatus;
 public class KieApiServiceTest {
 
     private static final String KIE_SERVER_PATH = "/kie-server/server";
+    private static final String QUERIES_DEFINITIONS = "/queries/definitions/";
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(0);
@@ -52,6 +55,13 @@ public class KieApiServiceTest {
                                 + "    }\n"
                                 + "  }\n"
                                 + "}")));
+        stubCustomQueries();
+    }
+
+    private void stubCustomQueries() {
+        stubFor(put(urlEqualTo(KIE_SERVER_PATH + QUERIES_DEFINITIONS + KieApiService.PDA_GROUPS))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.CREATED.value())));
     }
 
     @Test
@@ -118,6 +128,18 @@ public class KieApiServiceTest {
 
         // Then
         assertThat(queryServicesClient).isNotNull();
+    }
+
+    @Test
+    public void shouldRegisterCustomQueries() {
+        // Given
+        Connection connection = getConnection();
+
+        // When
+        kieApiService.getKieServicesClient(connection);
+
+        // Then
+        verify(putRequestedFor(urlEqualTo(KIE_SERVER_PATH + QUERIES_DEFINITIONS + KieApiService.PDA_GROUPS)));
     }
 
     private Connection getConnection() {

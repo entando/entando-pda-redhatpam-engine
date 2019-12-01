@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.kie.server.api.marshalling.MarshallingFormat;
+import org.kie.server.api.model.definition.QueryDefinition;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.KieServicesConfiguration;
 import org.kie.server.client.KieServicesFactory;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class KieApiService {
+
+    public static final String PDA_GROUPS = "pdaGroups";
 
     private final Map<Connection, KieServicesClient> kieServicesClientMap = new ConcurrentHashMap<>();
 
@@ -41,7 +44,24 @@ public class KieApiService {
                 .newRestConfiguration(connection.getUrl(), connection.getUsername(), connection.getPassword());
         configuration.setMarshallingFormat(MarshallingFormat.JSON);
         kieServicesClient = KieServicesFactory.newKieServicesClient(configuration);
+        registerCustomQueries(kieServicesClient);
         return kieServicesClient;
+    }
+
+    private void registerCustomQueries(KieServicesClient kieServicesClient) {
+        QueryServicesClient queryClient = kieServicesClient.getServicesClient(QueryServicesClient.class);
+        registerPdaGroupsQuery(queryClient);
+    }
+
+    private void registerPdaGroupsQuery(QueryServicesClient queryClient) {
+        QueryDefinition queryDefinition = QueryDefinition.builder()
+                .name(PDA_GROUPS)
+                .source("${org.kie.server.persistence.ds}")
+                .expression("SELECT id FROM organizationalentity\n"
+                        + "WHERE dtype = 'Group'\n"
+                ).target("CUSTOM")
+                .build();
+        queryClient.replaceQuery(queryDefinition);
     }
 
     public ProcessServicesClient getProcessServicesClient(Connection connection) {
