@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CustomQueryService {
 
-    private static final int PAGE_SIZE = 1000;
+    private static final int ALL_ITEMS = -1;
 
     private final KieApiService kieApiService;
 
@@ -23,11 +23,11 @@ public class CustomQueryService {
         List<List> result;
         if (inGroups.length == 0) {
             result = queryClient
-                    .query(KieApiService.PDA_GROUPS, QueryServicesClient.QUERY_MAP_RAW, 0, PAGE_SIZE, List.class);
+                    .query(KieApiService.PDA_GROUPS, QueryServicesClient.QUERY_MAP_RAW, 0, ALL_ITEMS, List.class);
         } else {
             QueryFilterSpec spec = new QueryFilterSpecBuilder().in("id", Arrays.asList(inGroups)).get();
             result = queryClient
-                    .query(KieApiService.PDA_GROUPS, QueryServicesClient.QUERY_MAP_RAW, spec, 0, PAGE_SIZE, List.class);
+                    .query(KieApiService.PDA_GROUPS, QueryServicesClient.QUERY_MAP_RAW, spec, 0, ALL_ITEMS, List.class);
         }
         return result.stream().flatMap(List::stream).map(Object::toString).collect(Collectors.toList());
     }
