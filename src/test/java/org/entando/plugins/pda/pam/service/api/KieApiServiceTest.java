@@ -11,6 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.drools.core.io.impl.ClassPathResource;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,24 +38,7 @@ public class KieApiServiceTest {
         stubFor(get(urlEqualTo(KIE_SERVER_PATH))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
-                        .withBody("{\n"
-                                + "  \"type\": \"SUCCESS\",\n"
-                                + "  \"msg\": \"Kie Server info\",\n"
-                                + "  \"result\": {\n"
-                                + "    \"kie-server-info\": {\n"
-                                + "      \"capabilities\": [\n"
-                                + "        \"KieServer\",\n"
-                                + "        \"BRM\",\n"
-                                + "        \"BPM\",\n"
-                                + "        \"CaseMgmt\",\n"
-                                + "        \"BPM-UI\",\n"
-                                + "        \"BRP\",\n"
-                                + "        \"DMN\",\n"
-                                + "        \"Swagger\"\n"
-                                + "      ]\n"
-                                + "    }\n"
-                                + "  }\n"
-                                + "}")));
+                        .withBody(new ClassPathResource("kie-server-result.json").getBytes())));
         stubCustomQueries();
     }
 

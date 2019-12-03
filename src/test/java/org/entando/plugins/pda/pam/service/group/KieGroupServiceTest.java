@@ -22,7 +22,7 @@ public class KieGroupServiceTest {
     private static final String GROUP_1 = "group1";
     private static final String GROUP_2 = "group2";
     private static final String GROUP_3 = "group3";
-    
+
     private CustomQueryService customQueryService;
     private KieApiService kieApiService;
     private KieGroupService kieGroupService;
@@ -42,7 +42,7 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, null, null);
+        List<String> groups = kieGroupService.list(connection, null);
 
         // Then
         assertThat(groups).containsExactlyElementsOf(returnedGroups);
@@ -63,7 +63,7 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection, processEntities)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, containerId, processId);
+        List<String> groups = kieGroupService.list(connection, containerId + KieGroupService.ID_SEPARATOR + processId);
 
         // Then
         assertThat(groups).containsExactlyElementsOf(returnedGroups);
@@ -83,7 +83,7 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, containerId, processId);
+        List<String> groups = kieGroupService.list(connection, containerId + KieGroupService.ID_SEPARATOR + processId);
 
         // Then
         verify(customQueryService, never()).getGroups(connection);

@@ -16,15 +16,19 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KieGroupService implements GroupService {
 
+    public static final String ID_SEPARATOR = "@";
+    private static final int COMPOSED_ID_SIZE = 2;
+
     private final CustomQueryService customQueryService;
     private final KieApiService kieApiService;
 
     @Override
-    public List<String> list(Connection connection, String containerId, String processId) {
-        if (containerId != null && processId != null) {
+    public List<String> list(Connection connection, String processId) {
+        String[] composedId = processId == null ? new String[0] : processId.split(ID_SEPARATOR);
+        if (composedId.length == COMPOSED_ID_SIZE) {
             ProcessServicesClient processServicesClient = kieApiService.getProcessServicesClient(connection);
             AssociatedEntitiesDefinition associatedEntityDefinitions = processServicesClient
-                    .getAssociatedEntityDefinitions(containerId, processId);
+                    .getAssociatedEntityDefinitions(composedId[0], composedId[1]);
             String[] inGroups = associatedEntityDefinitions.getAssociatedEntities().values().stream()
                     .flatMap(Arrays::stream).toArray(String[]::new);
             return inGroups.length == 0 ? Collections.emptyList() : customQueryService.getGroups(connection, inGroups);
