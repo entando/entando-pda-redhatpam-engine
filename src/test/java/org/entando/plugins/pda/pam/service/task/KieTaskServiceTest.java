@@ -12,15 +12,19 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.Set;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
+import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedRestResponse;
+import org.entando.web.response.SimpleRestResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.representations.AccessToken;
@@ -61,7 +65,7 @@ public class KieTaskServiceTest {
         mockTasksRequest(ExpectedCount.manyTimes());
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(dummyConnection(), null, new PagedListRequest());
+        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
 
         // Then
         mockServer.verify();
@@ -85,7 +89,7 @@ public class KieTaskServiceTest {
 
         // When
         PagedRestResponse<Task> tasks = kieTaskService
-                .list(dummyConnection(), null, new PagedListRequest(1, 10, "task-id", Filter.DESC_ORDER));
+                .list(getDummyConnection(), null, new PagedListRequest(1, 10, "task-id", Filter.DESC_ORDER));
 
         // Then
         mockServer.verify();
@@ -96,7 +100,7 @@ public class KieTaskServiceTest {
     public void shouldListUsingAuthenticatedUser() throws Exception {
         // Given
         String username = "chuck_norris";
-        AuthenticatedUser user = dummyUser(username);
+        AuthenticatedUser user = getDummyUser(username);
         mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(queryParam("user", username))
@@ -107,7 +111,7 @@ public class KieTaskServiceTest {
         mockTasksRequest(ExpectedCount.once());
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(dummyConnection(), user, new PagedListRequest());
+        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), user, new PagedListRequest());
 
         // Then
         mockServer.verify();
@@ -127,7 +131,7 @@ public class KieTaskServiceTest {
         mockTasksRequest(ExpectedCount.manyTimes());
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(dummyConnection(), null, new PagedListRequest());
+        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
 
         // Then
         mockServer.verify();
@@ -151,7 +155,7 @@ public class KieTaskServiceTest {
         mockVariablesRequest(ExpectedCount.once());
 
         // When
-        Task task = kieTaskService.get(dummyConnection(), null, generatedTask.getId());
+        Task task = kieTaskService.get(getDummyConnection(), null, generatedTask.getId());
 
         // Then
         mockServer.verify();
@@ -172,10 +176,49 @@ public class KieTaskServiceTest {
         mockVariablesRequest(ExpectedCount.once());
 
         // When
-        Task task = kieTaskService.get(dummyConnection(), null, createdTask.getId());
+        Task task = kieTaskService.get(getDummyConnection(), null, createdTask.getId());
 
         // Then
         assertThat(task.getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2)).isNotNull();
+    }
+
+    @Test
+    public void shouldReturnTaskColumns() throws Exception {
+        // Given
+        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(
+                                new KieTasksResponse(KieTaskTestHelper.createKieTaskListWithEmbeddedData())),
+                        MediaType.APPLICATION_JSON));
+        mockVariablesRequest(ExpectedCount.once());
+        mockTasksRequest(ExpectedCount.manyTimes());
+
+        // When
+        SimpleRestResponse<Set<String>> response = kieTaskService.listTaskColumns(getDummyConnection(), null);
+
+        // Then
+        assertThat(response.getPayload())
+                .contains(KieTask.ID, KieTask.NAME, KieTask.PROCESS_ID, KieTask.CONTAINER_ID,
+                        KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2);
+    }
+
+    @Test
+    public void shouldReturnEmptyTaskColumnsWhenThereIsNoTaskInTheList() throws Exception {
+        // Given
+        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(
+                        mapper.writeValueAsString(new KieTasksResponse(Collections.emptyList())),
+                        MediaType.APPLICATION_JSON));
+        mockVariablesRequest(ExpectedCount.once());
+        mockTasksRequest(ExpectedCount.manyTimes());
+
+        // When
+        SimpleRestResponse<Set<String>> response = kieTaskService.listTaskColumns(getDummyConnection(), null);
+
+        // Then
+        assertThat(response.getPayload()).isEmpty();
     }
 
     private void mockVariablesRequest(ExpectedCount count) throws JsonProcessingException {
@@ -194,7 +237,7 @@ public class KieTaskServiceTest {
                         MediaType.APPLICATION_JSON));
     }
 
-    private AuthenticatedUser dummyUser(String username) {
+    private AuthenticatedUser getDummyUser(String username) {
         AuthenticatedUser user = mock(AuthenticatedUser.class);
         AccessToken token = mock(AccessToken.class);
         when(user.getAccessToken())
@@ -204,7 +247,7 @@ public class KieTaskServiceTest {
         return user;
     }
 
-    private Connection dummyConnection() {
+    private Connection getDummyConnection() {
         return Connection.builder()
                 .username("myUsername")
                 .password("myPassword")
