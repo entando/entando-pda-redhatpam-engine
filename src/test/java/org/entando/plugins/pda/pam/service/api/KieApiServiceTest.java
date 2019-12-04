@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.QueryServicesClient;
+import org.kie.server.client.UIServicesClient;
 import org.springframework.http.HttpStatus;
 
 public class KieApiServiceTest {
@@ -112,6 +113,18 @@ public class KieApiServiceTest {
 
         // Then
         assertThat(queryServicesClient).isNotNull();
+    }
+
+    @Test
+    public void shouldGetUIServicesClient() {
+        // Given
+        Connection connection = getConnection();
+
+        // When
+        UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
+
+        // Then
+        assertThat(uiServicesClient).isNotNull();
     }
 
     @Test

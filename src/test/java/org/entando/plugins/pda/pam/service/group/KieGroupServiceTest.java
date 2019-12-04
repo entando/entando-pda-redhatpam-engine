@@ -12,6 +12,7 @@ import java.util.List;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.process.model.KieProcessId;
 import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.api.model.definition.AssociatedEntitiesDefinition;
@@ -53,7 +54,7 @@ public class KieGroupServiceTest {
         // Given
         ProcessServicesClient processServicesClient = mock(ProcessServicesClient.class);
         String containerId = "container-1";
-        String processId = "process-1";
+        String processId = "1";
         String[] processEntities = {GROUP_1, GROUP_2, GROUP_3};
         when(processServicesClient.getAssociatedEntityDefinitions(containerId, processId))
                 .thenReturn(getAssociatedEntities(processEntities));
@@ -63,7 +64,7 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection, processEntities)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, containerId + KieGroupService.ID_SEPARATOR + processId);
+        List<String> groups = kieGroupService.list(connection, processId + KieProcessId.SEPARATOR + containerId);
 
         // Then
         assertThat(groups).containsExactlyElementsOf(returnedGroups);
@@ -74,7 +75,7 @@ public class KieGroupServiceTest {
         // Given
         ProcessServicesClient processServicesClient = mock(ProcessServicesClient.class);
         String containerId = "container-1";
-        String processId = "process-1";
+        String processId = "1";
         when(processServicesClient.getAssociatedEntityDefinitions(containerId, processId))
                 .thenReturn(getAssociatedEntities());
         Connection connection = Connection.builder().build();
@@ -83,7 +84,7 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, containerId + KieGroupService.ID_SEPARATOR + processId);
+        List<String> groups = kieGroupService.list(connection, processId + KieProcessId.SEPARATOR + containerId);
 
         // Then
         verify(customQueryService, never()).getGroups(connection);
