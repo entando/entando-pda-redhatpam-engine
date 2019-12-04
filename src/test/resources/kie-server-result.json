@@ -1,0 +1,18 @@
+{
+  "type": "SUCCESS",
+  "msg": "Kie Server info",
+  "result": {
+    "kie-server-info": {
+      "capabilities": [
+        "KieServer",
+        "BRM",
+        "BPM",
+        "CaseMgmt",
+        "BPM-UI",
+        "BRP",
+        "DMN",
+        "Swagger"
+      ]
+    }
+  }
+}
