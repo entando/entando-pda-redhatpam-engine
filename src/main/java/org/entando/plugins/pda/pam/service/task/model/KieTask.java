@@ -10,16 +10,17 @@ import org.entando.plugins.pda.core.model.Task;
 @Data
 @NoArgsConstructor
 public class KieTask extends Task {
-    private static final String ID = "task-id";
-    private static final String NAME = "task-name";
-    private static final String PROCESS_ID = "task-proc-def-id";
-    private static final String PROCESS_INSTANCE_ID_ALT1 = "task-proc-inst-id";
-    private static final String PROCESS_INSTANCE_ID_ALT2 = "task-process-instance-id";
-    private static final String CONTAINER_ID = "task-container-id";
+
+    public static final String ID = "task-id";
+    public static final String NAME = "task-name";
+    public static final String PROCESS_ID = "task-proc-def-id";
+    public static final String PROCESS_INSTANCE_ID_ALT1 = "task-proc-inst-id";
+    public static final String PROCESS_INSTANCE_ID_ALT2 = "task-process-instance-id";
+    public static final String CONTAINER_ID = "task-container-id";
 
     @Builder
     public KieTask(String id, String name, String processId, String processInstanceId, String containerId,
-            @Singular("extraProperty") Map<String,Object> extraProperties) {
+            @Singular("extraProperty") Map<String, Object> extraProperties) {
         super(extraProperties);
 
         this.data.put(ID, id);
