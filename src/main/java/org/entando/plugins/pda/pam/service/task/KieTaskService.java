@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.entando.web.exception.BadResponseException;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedMetadata;
 import org.entando.web.response.PagedRestResponse;
+import org.entando.web.response.SimpleRestResponse;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
@@ -99,6 +101,16 @@ public class KieTaskService implements TaskService {
 
         TaskUtil.flatProperties(task);
         return task;
+    }
+
+    @Override
+    public SimpleRestResponse<Set<String>> listTaskColumns(Connection connection, AuthenticatedUser user) {
+        PagedListRequest pagedRequest = new PagedListRequest(1, 1, "taskId", PagedListRequest.DIRECTION_VALUE_DEFAULT);
+        PagedRestResponse<Task> list = list(connection, user, pagedRequest);
+        if (list.getPayload().isEmpty()) {
+            return new SimpleRestResponse<>(Collections.emptySet());
+        }
+        return new SimpleRestResponse<>(list.getPayload().get(0).getData().keySet());
     }
 
     private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
