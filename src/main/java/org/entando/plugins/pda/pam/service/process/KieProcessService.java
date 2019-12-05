@@ -14,7 +14,6 @@ import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessId;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
-import org.entando.web.exception.BadRequestException;
 import org.entando.web.exception.BadResponseException;
 import org.entando.web.exception.InternalServerException;
 import org.entando.web.request.PagedListRequest;
