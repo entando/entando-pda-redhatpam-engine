@@ -7,8 +7,8 @@ public class KieProcessDefinitionId {
     public static final String SEPARATOR = "@";
     public static final int SIZE = 2;
 
-    private String containerId;
-    private String processDefinitionId;
+    private final String containerId;
+    private final String processDefinitionId;
 
     public KieProcessDefinitionId(String id) {
         String[] split = Optional.ofNullable(id)

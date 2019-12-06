@@ -13,7 +13,6 @@ import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinitionId;
-import org.entando.plugins.pda.pam.service.process.model.KieProcessId;
 import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.api.model.definition.AssociatedEntitiesDefinition;
