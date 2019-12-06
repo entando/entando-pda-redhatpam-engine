@@ -12,6 +12,7 @@ import org.kie.server.client.KieServicesConfiguration;
 import org.kie.server.client.KieServicesFactory;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.QueryServicesClient;
+import org.kie.server.client.UIServicesClient;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -72,6 +73,11 @@ public class KieApiService {
     public QueryServicesClient getQueryServicesClient(Connection connection) {
         KieServicesClient client = getKieServicesClient(connection);
         return client.getServicesClient(QueryServicesClient.class);
+    }
+
+    public UIServicesClient getUiServicesClient(Connection connection) {
+        KieServicesClient client = getKieServicesClient(connection);
+        return client.getServicesClient(UIServicesClient.class);
     }
 
     @VisibleForTesting

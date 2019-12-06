@@ -12,6 +12,7 @@ import java.util.List;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinitionId;
 import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.api.model.definition.AssociatedEntitiesDefinition;
@@ -63,7 +64,8 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection, processEntities)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, containerId + KieGroupService.ID_SEPARATOR + processId);
+        List<String> groups = kieGroupService.list(connection,
+                processId + KieProcessDefinitionId.SEPARATOR + containerId);
 
         // Then
         assertThat(groups).containsExactlyElementsOf(returnedGroups);
@@ -83,7 +85,8 @@ public class KieGroupServiceTest {
         when(customQueryService.getGroups(connection)).thenReturn(returnedGroups);
 
         // When
-        List<String> groups = kieGroupService.list(connection, containerId + KieGroupService.ID_SEPARATOR + processId);
+        List<String> groups = kieGroupService.list(connection,
+                processId + KieProcessDefinitionId.SEPARATOR + containerId);
 
         // Then
         verify(customQueryService, never()).getGroups(connection);

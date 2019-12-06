@@ -12,11 +12,15 @@ public class KieProcessTestHelper {
     public static final String PROCESS_NAME_KEY = "name";
     public static final String PROCESS_PROP_KEY = "new-key";
 
-    public static final String PROCESS_DEFINITION_ID_1 = "1";
+    public static final String PROCESS_DEFINITION_ID_1 = "process-1";
+    public static final String PROCESS_ID_1 = "1";
+    public static final String PROCESS_CONTAINER_ID_1 = "container-1";
+    public static final String PROCESS_PDA_ID = String.format("%s@%s", PROCESS_ID_1, PROCESS_CONTAINER_ID_1);
     public static final String PROCESS_NAME_1 = "Process 1";
     public static final String PROCESS_PROP_1 = "New Prop 1";
+    public static final String PROCESS_DIAGRAM__1 = "<svg>diagram</svg>";
 
-    public static final String PROCESS_DEFINITION_ID_2 = "2";
+    public static final String PROCESS_DEFINITION_ID_2 = "process-2";
     public static final String PROCESS_NAME_2 = "Process 2";
     public static final String PROCESS_PROP_2 = "New Prop 2";
 

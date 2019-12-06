@@ -5,25 +5,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
 import org.entando.plugins.pda.core.service.task.ProcessService;
 import org.entando.plugins.pda.pam.service.KieUtils;
+import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
+import org.entando.plugins.pda.pam.service.process.model.KieProcessId;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.web.exception.BadResponseException;
+import org.entando.web.exception.InternalServerException;
 import org.entando.web.request.PagedListRequest;
+import org.kie.server.api.exception.KieServicesHttpException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class KieProcessService implements ProcessService {
 
     private final RestTemplateBuilder restTemplateBuilder;
+    private final KieApiService kieApiService;
 
     public static final int MAX_KIE_PAGE_SIZE = 2_000_000_000;
 
@@ -42,18 +47,35 @@ public class KieProcessService implements ProcessService {
         PagedListRequest pageRequest = new PagedListRequest();
         pageRequest.setPageSize(MAX_KIE_PAGE_SIZE); //Set max page size to get all results
 
-        List<KieProcessDefinition> response = getProcessesDefinitions(restTemplate, connection, pageRequest);
+        List<KieProcessDefinition> response = performGetProcessesDefinitions(restTemplate, connection, pageRequest);
         while (!response.isEmpty()) { //Continue requesting pages if total results bigger than max page size
             result.addAll(response);
             pageRequest.setPage(pageRequest.getPage() + 1);
 
-            response = getProcessesDefinitions(restTemplate, connection, pageRequest);
+            response = performGetProcessesDefinitions(restTemplate, connection, pageRequest);
         }
 
         return result;
     }
 
-    private List<KieProcessDefinition> getProcessesDefinitions(RestTemplate restTemplate, Connection connection,
+    @Override
+    public String getProcessDiagram(Connection connection, String id) {
+        try {
+            KieProcessId compositeId = new KieProcessId(id);
+
+            return Optional.ofNullable(kieApiService.getUiServicesClient(connection)
+                    .getProcessInstanceImage(compositeId.getContainerId(), compositeId.getProcessId()))
+                    .orElseThrow(ProcessNotFoundException::new);
+        } catch (KieServicesHttpException e) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
+                throw new ProcessNotFoundException(e);
+            }
+
+            throw new InternalServerException(e.getMessage(), e);
+        }
+    }
+
+    private List<KieProcessDefinition> performGetProcessesDefinitions(RestTemplate restTemplate, Connection connection,
             PagedListRequest pageRequest) {
         String url = connection.getUrl() + PROCESS_DEFINITION_LIST_URL
                 + KieUtils.createFilters(pageRequest, true);
