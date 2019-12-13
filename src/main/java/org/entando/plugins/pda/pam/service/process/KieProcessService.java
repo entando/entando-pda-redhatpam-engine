@@ -44,12 +44,12 @@ public class KieProcessService implements ProcessService {
     public static final String FORM_PROCESS_URL = "/containers/{containerId}/forms/processes/{processId}";
     //CHECKSTYLE:ON
 
-    public static final ObjectMapper mapper = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Form.class, new FormDeserializer());
-        mapper.registerModule(module);
+        MAPPER.registerModule(module);
     }
 
     @Override
@@ -74,8 +74,7 @@ public class KieProcessService implements ProcessService {
 
     @Override
     public List<Form> getProcessForm(Connection connection, String processId) {
-        RestTemplate restTemplate = getRestTemplate(connection);
-        return performGetProcessForm(restTemplate, connection, processId);
+        return performGetProcessForm(connection, processId);
     }
 
     @Override
@@ -108,8 +107,7 @@ public class KieProcessService implements ProcessService {
                 .orElse(Collections.emptyList());
     }
 
-    private List<Form> performGetProcessForm(RestTemplate restTemplate, Connection connection,
-            String processId) {
+    private List<Form> performGetProcessForm(Connection connection, String processId) {
 
         KieProcessDefinitionId compositeId = new KieProcessDefinitionId(processId);
 
@@ -121,12 +119,12 @@ public class KieProcessService implements ProcessService {
         List<Form> result = new ArrayList<>();
 
         try {
-            JsonNode parentNode = mapper.readTree(json);
+            JsonNode parentNode = MAPPER.readTree(json);
             for (JsonNode childNode : parentNode) {
-                Form form = mapper.treeToValue(childNode, Form.class);
+                Form form = MAPPER.treeToValue(childNode, Form.class);
 
                 if (form.getFields().size() > 0) {
-                    result.add(mapper.treeToValue(childNode, Form.class));
+                    result.add(MAPPER.treeToValue(childNode, Form.class));
                 }
             }
             return result;
