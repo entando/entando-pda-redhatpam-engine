@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
-import org.entando.plugins.pda.core.service.task.ProcessService;
+import org.entando.plugins.pda.core.service.process.ProcessService;
 import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
-import org.entando.plugins.pda.pam.service.process.model.KieProcessId;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.web.exception.BadResponseException;
 import org.entando.web.exception.InternalServerException;
@@ -61,10 +61,10 @@ public class KieProcessService implements ProcessService {
     @Override
     public String getProcessDiagram(Connection connection, String id) {
         try {
-            KieProcessId compositeId = new KieProcessId(id);
+            KieInstanceId compositeId = new KieInstanceId(id);
 
             return Optional.ofNullable(kieApiService.getUiServicesClient(connection)
-                    .getProcessInstanceImage(compositeId.getContainerId(), compositeId.getProcessId()))
+                    .getProcessInstanceImage(compositeId.getContainerId(), compositeId.getInstanceId()))
                     .orElseThrow(ProcessNotFoundException::new);
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {

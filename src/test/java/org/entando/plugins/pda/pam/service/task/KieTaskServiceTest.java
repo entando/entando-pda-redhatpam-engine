@@ -1,37 +1,38 @@
 package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
+import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
+import static org.entando.plugins.pda.pam.util.KieTaskTestHelper.mockTasksRequest;
+import static org.entando.plugins.pda.pam.util.KieTaskTestHelper.mockVariablesRequest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.ExpectedCount.manyTimes;
+import static org.springframework.test.web.client.ExpectedCount.once;
+import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Collections;
-import java.util.Set;
 import org.entando.keycloak.security.AuthenticatedUser;
-import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.model.Task;
-import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
-import org.entando.plugins.pda.pam.service.task.model.KieTask;
+import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedRestResponse;
-import org.entando.web.response.SimpleRestResponse;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.keycloak.representations.AccessToken;
+import org.junit.rules.ExpectedException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,6 +42,9 @@ public class KieTaskServiceTest {
 
     private MockRestServiceServer mockServer;
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -61,8 +65,8 @@ public class KieTaskServiceTest {
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
                         MediaType.APPLICATION_JSON));
-        mockVariablesRequest(ExpectedCount.times(2));
-        mockTasksRequest(ExpectedCount.manyTimes());
+        mockVariablesRequest(mockServer, mapper, times(2));
+        mockTasksRequest(mockServer, mapper, manyTimes());
 
         // When
         PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
@@ -84,8 +88,8 @@ public class KieTaskServiceTest {
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
                         MediaType.APPLICATION_JSON));
-        mockVariablesRequest(ExpectedCount.times(2));
-        mockTasksRequest(ExpectedCount.manyTimes());
+        mockVariablesRequest(mockServer, mapper, times(2));
+        mockTasksRequest(mockServer, mapper, manyTimes());
 
         // When
         PagedRestResponse<Task> tasks = kieTaskService
@@ -107,8 +111,8 @@ public class KieTaskServiceTest {
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskListUser())),
                         MediaType.APPLICATION_JSON));
-        mockVariablesRequest(ExpectedCount.once());
-        mockTasksRequest(ExpectedCount.once());
+        mockVariablesRequest(mockServer, mapper, once());
+        mockTasksRequest(mockServer, mapper, once());
 
         // When
         PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), user, new PagedListRequest());
@@ -127,8 +131,8 @@ public class KieTaskServiceTest {
                         mapper.writeValueAsString(
                                 new KieTasksResponse(KieTaskTestHelper.createKieTaskListWithEmbeddedData())),
                         MediaType.APPLICATION_JSON));
-        mockVariablesRequest(ExpectedCount.once());
-        mockTasksRequest(ExpectedCount.manyTimes());
+        mockVariablesRequest(mockServer, mapper, once());
+        mockTasksRequest(mockServer, mapper, manyTimes());
 
         // When
         PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
@@ -145,17 +149,20 @@ public class KieTaskServiceTest {
     public void shouldGetTask() throws Exception {
         // Given
         Task generatedTask = KieTaskTestHelper.generateKieTask();
+        KieInstanceId taskId = new KieInstanceId(generatedTask.getContainerId(), generatedTask.getId());
+
         mockServer.expect(requestTo(
-                containsString(KieTaskService.TASK_URL.replace("{tInstanceId}", generatedTask.getId()))))
+                containsString(KieTaskService.TASK_URL
+                        .replace("{tInstanceId}", taskId.getInstanceId().toString()))))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(generatedTask),
                         MediaType.APPLICATION_JSON));
-        mockTasksRequest(ExpectedCount.once());
-        mockVariablesRequest(ExpectedCount.once());
+        mockTasksRequest(mockServer, mapper, once());
+        mockVariablesRequest(mockServer, mapper, once());
 
         // When
-        Task task = kieTaskService.get(getDummyConnection(), null, generatedTask.getId());
+        Task task = kieTaskService.get(getDummyConnection(), null, taskId.toString());
 
         // Then
         mockServer.verify();
@@ -166,94 +173,22 @@ public class KieTaskServiceTest {
     public void shouldReturnFlattenDataOnGet() throws Exception {
         // Given
         Task createdTask = KieTaskTestHelper.createKieTaskListWithEmbeddedData().get(0);
+        KieInstanceId taskId = new KieInstanceId(createdTask.getContainerId(), createdTask.getId());
+
         mockServer.expect(requestTo(
-                containsString(KieTaskService.TASK_URL.replace("{tInstanceId}", createdTask.getId()))))
+                containsString(KieTaskService.TASK_URL
+                        .replace("{tInstanceId}", taskId.getInstanceId().toString()))))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(createdTask),
                         MediaType.APPLICATION_JSON));
-        mockTasksRequest(ExpectedCount.once());
-        mockVariablesRequest(ExpectedCount.once());
+        mockTasksRequest(mockServer, mapper, once());
+        mockVariablesRequest(mockServer, mapper, once());
 
         // When
-        Task task = kieTaskService.get(getDummyConnection(), null, createdTask.getId());
+        Task task = kieTaskService.get(getDummyConnection(), null, taskId.toString());
 
         // Then
         assertThat(task.getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2)).isNotNull();
-    }
-
-    @Test
-    public void shouldReturnTaskColumns() throws Exception {
-        // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(
-                                new KieTasksResponse(KieTaskTestHelper.createKieTaskListWithEmbeddedData())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(ExpectedCount.once());
-        mockTasksRequest(ExpectedCount.manyTimes());
-
-        // When
-        SimpleRestResponse<Set<String>> response = kieTaskService.listTaskColumns(getDummyConnection(), null);
-
-        // Then
-        assertThat(response.getPayload())
-                .contains(KieTask.ID, KieTask.NAME, KieTask.PROCESS_ID, KieTask.CONTAINER_ID,
-                        KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2);
-    }
-
-    @Test
-    public void shouldReturnEmptyTaskColumnsWhenThereIsNoTaskInTheList() throws Exception {
-        // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(Collections.emptyList())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(ExpectedCount.once());
-        mockTasksRequest(ExpectedCount.manyTimes());
-
-        // When
-        SimpleRestResponse<Set<String>> response = kieTaskService.listTaskColumns(getDummyConnection(), null);
-
-        // Then
-        assertThat(response.getPayload()).isEmpty();
-    }
-
-    private void mockVariablesRequest(ExpectedCount count) throws JsonProcessingException {
-        mockServer.expect(count, requestTo(containsString("/variables/instances")))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(mapper.writeValueAsString(
-                        new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables())),
-                        MediaType.APPLICATION_JSON));
-    }
-
-    private void mockTasksRequest(ExpectedCount count) throws JsonProcessingException {
-        mockServer.expect(count, requestTo(containsString("/tasks")))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(KieTaskTestHelper.createKieTaskDetails()),
-                        MediaType.APPLICATION_JSON));
-    }
-
-    private AuthenticatedUser getDummyUser(String username) {
-        AuthenticatedUser user = mock(AuthenticatedUser.class);
-        AccessToken token = mock(AccessToken.class);
-        when(user.getAccessToken())
-                .thenReturn(token);
-        when(token.getPreferredUsername())
-                .thenReturn(username);
-        return user;
-    }
-
-    private Connection getDummyConnection() {
-        return Connection.builder()
-                .username("myUsername")
-                .password("myPassword")
-                .schema("http")
-                .host("myurl")
-                .port("8080")
-                .build();
     }
 }

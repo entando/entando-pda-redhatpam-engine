@@ -3,14 +3,14 @@ package org.entando.plugins.pda.pam.service.process.model;
 import java.util.Optional;
 import org.entando.web.exception.BadRequestException;
 
-public class KieProcessDefinitionId {
+public class KieDefinitionId {
     public static final String SEPARATOR = "@";
     public static final int SIZE = 2;
 
     private final String containerId;
-    private final String processDefinitionId;
+    private final String definitionId;
 
-    public KieProcessDefinitionId(String id) {
+    public KieDefinitionId(String id) {
         String[] split = Optional.ofNullable(id)
                 .orElseThrow(() -> new BadRequestException("org.entando.kie.error.id"))
                 .split(SEPARATOR);
@@ -19,7 +19,7 @@ public class KieProcessDefinitionId {
             throw new BadRequestException("org.entando.kie.error.id");
         }
 
-        this.processDefinitionId = split[0];
+        this.definitionId = split[0];
         this.containerId = split[1];
     }
 
@@ -27,7 +27,12 @@ public class KieProcessDefinitionId {
         return containerId;
     }
 
-    public String getProcessDefinitionId() {
-        return processDefinitionId;
+    public String getDefinitionId() {
+        return definitionId;
+    }
+
+    @Override
+    public String toString() {
+        return definitionId + SEPARATOR + containerId;
     }
 }
