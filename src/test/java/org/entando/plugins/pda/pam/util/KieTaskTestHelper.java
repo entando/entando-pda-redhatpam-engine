@@ -25,6 +25,7 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 
 @UtilityClass
+@SuppressWarnings("PMD.TooManyMethods")
 public class KieTaskTestHelper {
 
     public static final String CONTAINER_ID_1 = "c1";
