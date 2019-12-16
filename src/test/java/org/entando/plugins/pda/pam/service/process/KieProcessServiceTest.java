@@ -12,18 +12,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.drools.core.io.impl.ClassPathResource;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
-import org.entando.plugins.pda.core.model.form.Form;
-import org.entando.plugins.pda.core.model.form.FormFieldType;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
 import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
@@ -32,7 +26,6 @@ import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsRespo
 import org.entando.plugins.pda.pam.util.KieProcessTestHelper;
 import org.entando.web.exception.InternalServerException;
 import org.entando.web.request.PagedListRequest;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -172,67 +165,4 @@ public class KieProcessServiceTest {
                 .build();
     }
 
-    @Test
-    public void deserializeProcessFormJson() {
-
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(Form.class, new FormDeserializer());
-        mapper.registerModule(module);
-
-        List<Form> result = new ArrayList<>();
-
-        String json = new String(new ClassPathResource("process-form.json").getBytes());
-
-        try {
-            JsonNode parentNode = mapper.readTree(json);
-
-            for (JsonNode childNode : parentNode) {
-
-                Form form  = mapper.treeToValue(childNode, Form.class);
-
-                if (form.getFields().size() > 0) {
-                    result.add(mapper.treeToValue(childNode, Form.class));
-                }
-            }
-
-            assertThat(result.size()).isEqualTo(3);
-
-            assertThat(result.get(0).getId()).isEqualTo("2aeaf281-71e1-45a5-9ab3-0abd855d924e");
-            assertThat(result.get(0).getName()).isEqualTo("Property");
-            assertThat(result.get(0).getFields().size()).isEqualTo(4);
-            assertThat(result.get(0).getFields().get(0).getId()).isEqualTo("field_815717729253767E11");
-            assertThat(result.get(0).getFields().get(0).getName()).isEqualTo("age");
-            assertThat(result.get(0).getFields().get(0).getLabel()).isEqualTo("Age of property");
-            assertThat(result.get(0).getFields().get(0).getRequired()).isFalse();
-            assertThat(result.get(0).getFields().get(0).getReadOnly()).isFalse();
-            assertThat(result.get(0).getFields().get(0).getType()).isEqualTo(FormFieldType.INTEGER);
-            assertThat(result.get(0).getFields().get(0).getPlaceholder()).isEqualTo("Age of property");
-
-            assertThat(result.get(1).getId()).isEqualTo("b71de860-4d3e-4b0c-95e9-c41e4d06f787");
-            assertThat(result.get(1).getName()).isEqualTo("Application");
-            assertThat(result.get(1).getFields().size()).isEqualTo(2);
-            assertThat(result.get(1).getFields().get(0).getId()).isEqualTo("field_290268943445829E11");
-            assertThat(result.get(1).getFields().get(0).getName()).isEqualTo("downpayment");
-            assertThat(result.get(1).getFields().get(0).getLabel()).isEqualTo("Down Payment");
-            assertThat(result.get(1).getFields().get(0).getRequired()).isFalse();
-            assertThat(result.get(1).getFields().get(0).getReadOnly()).isFalse();
-            assertThat(result.get(1).getFields().get(0).getType()).isEqualTo(FormFieldType.INTEGER);
-            assertThat(result.get(1).getFields().get(0).getPlaceholder()).isEqualTo("Down Payment");
-
-            assertThat(result.get(2).getId()).isEqualTo("0cb94115-b991-4dbe-a342-00d99a1cdd2d");
-            assertThat(result.get(2).getName()).isEqualTo("Applicant");
-            assertThat(result.get(2).getFields().size()).isEqualTo(3);
-            assertThat(result.get(2).getFields().get(0).getId()).isEqualTo("field_922175737010885E11");
-            assertThat(result.get(2).getFields().get(0).getName()).isEqualTo("name");
-            assertThat(result.get(2).getFields().get(0).getLabel()).isEqualTo("Name");
-            assertThat(result.get(2).getFields().get(0).getRequired()).isFalse();
-            assertThat(result.get(2).getFields().get(0).getReadOnly()).isFalse();
-            assertThat(result.get(2).getFields().get(0).getType()).isEqualTo(FormFieldType.STRING);
-            assertThat(result.get(2).getFields().get(0).getPlaceholder()).isEqualTo("Name");
-
-        } catch (IOException e) {
-            Assert.fail();
-        }
-    }
 }

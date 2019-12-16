@@ -1,9 +1,7 @@
 package org.entando.plugins.pda.pam.service.process;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,13 +16,11 @@ import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
-import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinitionId;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.web.exception.BadResponseException;
 import org.entando.web.exception.InternalServerException;
 import org.entando.web.request.PagedListRequest;
 import org.kie.server.api.exception.KieServicesHttpException;
-import org.kie.server.client.UIServicesClient;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,7 +37,6 @@ public class KieProcessService implements ProcessService {
 
     //CHECKSTYLE:OFF
     public static final String PROCESS_DEFINITION_LIST_URL = "/queries/processes/definitions";
-    public static final String FORM_PROCESS_URL = "/containers/{containerId}/forms/processes/{processId}";
     //CHECKSTYLE:ON
 
     public static final ObjectMapper MAPPER = new ObjectMapper();
@@ -73,11 +68,6 @@ public class KieProcessService implements ProcessService {
     }
 
     @Override
-    public List<Form> getProcessForm(Connection connection, String processId) {
-        return performGetProcessForm(connection, processId);
-    }
-
-    @Override
     public String getProcessDiagram(Connection connection, String id) {
         try {
             KieInstanceId compositeId = new KieInstanceId(id);
@@ -105,32 +95,6 @@ public class KieProcessService implements ProcessService {
 
         return Optional.ofNullable(response.getProcesses())
                 .orElse(Collections.emptyList());
-    }
-
-    private List<Form> performGetProcessForm(Connection connection, String processId) {
-
-        KieProcessDefinitionId compositeId = new KieProcessDefinitionId(processId);
-
-        UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
-
-        String json = uiServicesClient
-                .getProcessForm(compositeId.getContainerId(), compositeId.getProcessDefinitionId());
-
-        List<Form> result = new ArrayList<>();
-
-        try {
-            JsonNode parentNode = MAPPER.readTree(json);
-            for (JsonNode childNode : parentNode) {
-                Form form = MAPPER.treeToValue(childNode, Form.class);
-
-                if (form.getFields().size() > 0) {
-                    result.add(MAPPER.treeToValue(childNode, Form.class));
-                }
-            }
-            return result;
-        } catch (IOException e) {
-            throw new InternalServerException(e.getMessage(), e);
-        }
     }
 
     private RestTemplate getRestTemplate(Connection connection) {

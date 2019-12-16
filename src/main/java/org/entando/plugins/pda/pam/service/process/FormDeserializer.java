@@ -1,7 +1,6 @@
 package org.entando.plugins.pda.pam.service.process;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -30,7 +29,7 @@ public class FormDeserializer extends StdDeserializer<Form> {
 
     @Override
     public Form deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-            throws IOException, JsonProcessingException {
+            throws IOException {
 
         JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
         JsonNode fieldsNode = rootNode.get("fields");
@@ -51,8 +50,7 @@ public class FormDeserializer extends StdDeserializer<Form> {
                 fieldBuilder = FormFieldText.builder()
                         .maxLength(getInteger(field, "maxLength"))
                         .minLength(getInteger(field, "minLength"));
-            }
-            if (FormFieldType.INTEGER == type) {
+            } else if (FormFieldType.INTEGER == type) {
                 fieldBuilder = FormFieldInteger.builder()
                         .maxValue(getInteger(field, "maxValue"))
                         .minValue(getInteger(field, "minValue"));
