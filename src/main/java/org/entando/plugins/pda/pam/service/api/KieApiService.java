@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.pam.exception.NoConnectionWithKieServerException;
 import org.kie.server.api.marshalling.MarshallingFormat;
 import org.kie.server.api.model.definition.QueryDefinition;
 import org.kie.server.client.KieServicesClient;
@@ -13,6 +14,7 @@ import org.kie.server.client.KieServicesFactory;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.QueryServicesClient;
 import org.kie.server.client.UIServicesClient;
+import org.kie.server.client.UserTaskServicesClient;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -66,18 +68,39 @@ public class KieApiService {
     }
 
     public ProcessServicesClient getProcessServicesClient(Connection connection) {
-        KieServicesClient client = getKieServicesClient(connection);
-        return client.getServicesClient(ProcessServicesClient.class);
+        try {
+            KieServicesClient client = getKieServicesClient(connection);
+            return client.getServicesClient(ProcessServicesClient.class);
+        } catch (RuntimeException e) { //NOPMD client throws generic exception
+            throw new NoConnectionWithKieServerException(e);
+        }
     }
 
     public QueryServicesClient getQueryServicesClient(Connection connection) {
-        KieServicesClient client = getKieServicesClient(connection);
-        return client.getServicesClient(QueryServicesClient.class);
+        try {
+            KieServicesClient client = getKieServicesClient(connection);
+            return client.getServicesClient(QueryServicesClient.class);
+        } catch (RuntimeException e) { //NOPMD client throws generic exception
+            throw new NoConnectionWithKieServerException(e);
+        }
     }
 
     public UIServicesClient getUiServicesClient(Connection connection) {
-        KieServicesClient client = getKieServicesClient(connection);
-        return client.getServicesClient(UIServicesClient.class);
+        try {
+            KieServicesClient client = getKieServicesClient(connection);
+            return client.getServicesClient(UIServicesClient.class);
+        } catch (RuntimeException e) { //NOPMD client throws generic exception
+            throw new NoConnectionWithKieServerException(e);
+        }
+    }
+
+    public UserTaskServicesClient getUserTaskServicesClient(Connection connection) {
+        try {
+            KieServicesClient client = getKieServicesClient(connection);
+            return client.getServicesClient(UserTaskServicesClient.class);
+        } catch (RuntimeException e) { //NOPMD client throws generic exception
+            throw new NoConnectionWithKieServerException(e);
+        }
     }
 
     @VisibleForTesting

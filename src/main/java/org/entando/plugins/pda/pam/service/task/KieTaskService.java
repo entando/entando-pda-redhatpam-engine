@@ -6,16 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
 import org.entando.plugins.pda.pam.service.KieUtils;
+import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
@@ -23,13 +24,14 @@ import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
 import org.entando.plugins.pda.pam.service.task.util.TaskUtil;
 import org.entando.web.exception.BadResponseException;
+import org.entando.web.exception.InternalServerException;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedMetadata;
 import org.entando.web.response.PagedRestResponse;
-import org.entando.web.response.SimpleRestResponse;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -56,7 +58,7 @@ public class KieTaskService implements TaskService {
 
         List<Task> result = getTasks(restTemplate, connection, user, request).stream() //Get Tasks
                 .map(t -> { //Get Process Instance Variables
-                    t.putAll(getProcessVariables(cachedVariables, restTemplate, connection, user,
+                    t.putAll(getProcessVariables(cachedVariables, restTemplate, connection,
                             t.getProcessInstanceId())
                             .stream().filter(e -> e.getValue() != null)
                             .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
@@ -68,7 +70,7 @@ public class KieTaskService implements TaskService {
 
         result.stream().parallel()
                 .forEach(t -> { //Get Task Details
-                    t.putAll(getTaskDetails(restTemplate, connection, user, t.getContainerId(), t.getId())
+                    t.putAll(getTaskDetails(restTemplate, connection, t.getContainerId(), t.getId())
                             .getData().entrySet().stream().filter(e -> e.getValue() != null)
                             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -85,32 +87,22 @@ public class KieTaskService implements TaskService {
                 .build();
 
         //Get Task
-        KieTask task = getTask(restTemplate, connection, user, id);
+        KieTask task = getTask(restTemplate, connection, id);
 
         // Get TaskDetails
-        task.putAll(getTaskDetails(restTemplate, connection, user, task.getContainerId(), task.getId())
+        task.putAll(getTaskDetails(restTemplate, connection, task.getContainerId(), task.getId())
                 .getData().entrySet().stream().filter(e -> e.getValue() != null)
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
         // Get ProcessInstanceVariables
-        task.putAll(getProcessVariables(restTemplate, connection, user, task.getProcessInstanceId())
+        task.putAll(getProcessVariables(restTemplate, connection, task.getProcessInstanceId())
                 .stream().filter(e -> e.getValue() != null)
                 .map(v -> new AbstractMap.SimpleEntry<>(v.getName(), v.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
         TaskUtil.flatProperties(task);
         return task;
-    }
-
-    @Override
-    public SimpleRestResponse<Set<String>> listTaskColumns(Connection connection, AuthenticatedUser user) {
-        PagedListRequest pagedRequest = new PagedListRequest(1, 1, "taskId", PagedListRequest.DIRECTION_VALUE_DEFAULT);
-        PagedRestResponse<Task> list = list(connection, user, pagedRequest);
-        if (list.getPayload().isEmpty()) {
-            return new SimpleRestResponse<>(Collections.emptySet());
-        }
-        return new SimpleRestResponse<>(list.getPayload().get(0).getData().keySet());
     }
 
     private List<KieTask> getTasks(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
@@ -125,26 +117,36 @@ public class KieTaskService implements TaskService {
                 .orElse(Collections.emptyList());
     }
 
-    private KieTask getTask(RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String id) {
-        String url = connection.getUrl() + TASK_URL.replace("{tInstanceId}", id)
-                + KieUtils.createUserFilter(connection, user);
+    private KieTask getTask(RestTemplate restTemplate, Connection connection, String id) {
+        KieInstanceId taskId = new KieInstanceId(id);
+        String url = connection.getUrl() + TASK_URL
+                .replace("{tInstanceId}", taskId.getInstanceId().toString());
 
-        return Optional.ofNullable(restTemplate.getForObject(url, KieTask.class))
-                .orElseThrow(BadResponseException::new);
+        try {
+            return Optional.ofNullable(restTemplate.getForObject(url, KieTask.class))
+                    .orElseThrow(BadResponseException::new);
+        } catch (HttpClientErrorException e) {
+            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+                throw new TaskNotFoundException(e);
+            }
+
+            throw new InternalServerException(e.getMessage(), e);
+        }
     }
 
     private List<KieProcessVariable> getProcessVariables(RestTemplate restTemplate, Connection connection,
-            AuthenticatedUser user, String processInstanceId) {
-        return getProcessVariables(new HashMap<>(), restTemplate, connection, user, processInstanceId);
+            String processInstanceId) {
+        return getProcessVariables(new HashMap<>(), restTemplate, connection, processInstanceId);
     }
 
     private List<KieProcessVariable> getProcessVariables(Map<String, List<KieProcessVariable>> cachedVariables,
-            RestTemplate restTemplate, Connection connection, AuthenticatedUser user, String processInstanceId) {
+            RestTemplate restTemplate, Connection connection, String processInstanceId) {
 
         if (cachedVariables.containsKey(processInstanceId)) {
             return cachedVariables.get(processInstanceId);
         } else {
-            String url = connection.getUrl() + PROCESS_VARIABLES_URL + KieUtils.createUserFilter(connection, user);
+            String url = connection.getUrl() + PROCESS_VARIABLES_URL
+                    .replace("{pInstanceId}", processInstanceId);
 
             List<KieProcessVariable> processVariables = Optional.ofNullable(restTemplate.getForObject(url,
                     KieProcessVariablesResponse.class, processInstanceId))
@@ -156,15 +158,17 @@ public class KieTaskService implements TaskService {
         }
     }
 
-    private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection, AuthenticatedUser user,
+    private KieTaskDetails getTaskDetails(RestTemplate restTemplate, Connection connection,
             String containerId, String taskInstanceId) {
         try {
-            String url = connection.getUrl() + TASK_DETAILS_URL + KieUtils.createUserFilter(connection, user);
+            String url = connection.getUrl() + TASK_DETAILS_URL
+                    .replace("{containerId}", containerId)
+                    .replace("{tInstanceId}", taskInstanceId);
 
             return Optional.ofNullable(restTemplate.getForObject(url, KieTaskDetails.class, containerId,
                     taskInstanceId))
                     .orElseThrow(BadResponseException::new);
-        } catch (HttpServerErrorException e) {
+        } catch (HttpClientErrorException e) {
             if (e.getStatusCode().is5xxServerError()) {
                 log.warn("Error retrieving TaskDetails, silently skipping: container={}, task={}",
                         containerId, taskInstanceId);

@@ -24,12 +24,12 @@ import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
+import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
 import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.plugins.pda.pam.util.KieProcessTestHelper;
-import org.entando.web.exception.BadRequestException;
 import org.entando.web.exception.InternalServerException;
 import org.entando.web.request.PagedListRequest;
 import org.junit.Assert;
@@ -136,14 +136,14 @@ public class KieProcessServiceTest {
 
     @Test
     public void shouldThrowBadRequestWhenGetProcessDiagram1() {
-        expectedException.expect(BadRequestException.class);
+        expectedException.expect(KieInvalidIdException.class);
 
         kieProcessService.getProcessDiagram(connection, "1-process_1");
     }
 
     @Test
     public void shouldThrowBadRequestWhenGetProcessDiagram2() {
-        expectedException.expect(BadRequestException.class);
+        expectedException.expect(KieInvalidIdException.class);
 
         kieProcessService.getProcessDiagram(connection, "not_a_number@process-1");
     }
