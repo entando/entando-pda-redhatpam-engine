@@ -17,6 +17,7 @@ import org.entando.plugins.pda.core.model.form.FormFieldType;
 import org.junit.Assert;
 import org.junit.Test;
 
+@SuppressWarnings("PMD.ExcessiveMethodLength")
 public class KieProcessFormServiceTest {
 
     @Test

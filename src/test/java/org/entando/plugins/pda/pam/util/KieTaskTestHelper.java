@@ -238,7 +238,7 @@ public class KieTaskTestHelper {
         mockServer.expect(count, requestTo(containsString("/variables/instances")))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(mapper.writeValueAsString(
-                        new KieProcessVariablesResponse(KieTaskTestHelper.createKieProcessVariables())),
+                        new KieProcessVariablesResponse(createKieProcessVariables())),
                         MediaType.APPLICATION_JSON));
     }
 
@@ -247,7 +247,7 @@ public class KieTaskTestHelper {
         mockServer.expect(count, requestTo(containsString("/tasks")))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
-                        mapper.writeValueAsString(KieTaskTestHelper.createKieTaskDetails()),
+                        mapper.writeValueAsString(createKieTaskDetails()),
                         MediaType.APPLICATION_JSON));
     }
 }
