@@ -25,7 +25,7 @@ public class KieProcessFormServiceTest {
 
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(Form.class, new FormDeserializer());
+        module.addDeserializer(Form.class, new KieFormDeserializer());
         mapper.registerModule(module);
 
         List<Form> result = new ArrayList<>();

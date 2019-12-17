@@ -13,17 +13,17 @@ import org.entando.plugins.pda.core.model.form.FormFieldInteger;
 import org.entando.plugins.pda.core.model.form.FormFieldText;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
 
-public class FormDeserializer extends StdDeserializer<Form> {
+public class KieFormDeserializer extends StdDeserializer<Form> {
 
     private static final String INTEGER_CLASS_NAME = "java.lang.Integer";
     private static final String STRING_CLASS_NAME = "java.lang.String";
     private static final String BOOLEAN_CLASS_NAME = "java.lang.Boolean";
 
-    public FormDeserializer() {
+    public KieFormDeserializer() {
         this(null);
     }
 
-    public FormDeserializer(Class<?> vc) {
+    public KieFormDeserializer(Class<?> vc) {
         super(vc);
     }
 

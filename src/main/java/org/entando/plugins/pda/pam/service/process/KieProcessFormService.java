@@ -1,11 +1,9 @@
 package org.entando.plugins.pda.pam.service.process;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
@@ -27,7 +25,7 @@ public class KieProcessFormService implements ProcessFormService {
 
     static {
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(Form.class, new FormDeserializer());
+        module.addDeserializer(Form.class, new KieFormDeserializer());
         MAPPER.registerModule(module);
     }
 

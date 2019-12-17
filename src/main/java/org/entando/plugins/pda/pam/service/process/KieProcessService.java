@@ -43,7 +43,7 @@ public class KieProcessService implements ProcessService {
 
     static {
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(Form.class, new FormDeserializer());
+        module.addDeserializer(Form.class, new KieFormDeserializer());
         MAPPER.registerModule(module);
     }
 
