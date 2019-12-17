@@ -1,5 +1,6 @@
 package org.entando.plugins.pda.pam.service.process;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -32,11 +33,6 @@ public class KieProcessFormService implements ProcessFormService {
 
     @Override
     public List<Form> getProcessForm(Connection connection, String processId) {
-        return performGetProcessForm(connection, processId);
-    }
-
-    private List<Form> performGetProcessForm(Connection connection, String processId) {
-
         KieDefinitionId compositeId = new KieDefinitionId(processId);
 
         UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
@@ -44,21 +40,10 @@ public class KieProcessFormService implements ProcessFormService {
         String json = uiServicesClient
                 .getProcessForm(compositeId.getContainerId(), compositeId.getDefinitionId());
 
-        List<Form> result = new ArrayList<>();
-
         try {
-            JsonNode parentNode = MAPPER.readTree(json);
-            for (JsonNode childNode : parentNode) {
-                Form form = MAPPER.treeToValue(childNode, Form.class);
-
-                if (form.getFields().size() > 0) {
-                    result.add(MAPPER.treeToValue(childNode, Form.class));
-                }
-            }
-            return result;
+            return MAPPER.readValue(json, new TypeReference<List<Form>>() {});
         } catch (IOException e) {
             throw new InternalServerException(e.getMessage(), e);
         }
     }
-
 }
