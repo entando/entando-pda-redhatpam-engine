@@ -1,5 +1,7 @@
 package org.entando.plugins.pda.pam.service.process;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
+import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.service.process.ProcessService;
 import org.entando.plugins.pda.pam.service.KieUtils;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
@@ -36,11 +39,17 @@ public class KieProcessService implements ProcessService {
     public static final String PROCESS_DEFINITION_LIST_URL = "/queries/processes/definitions";
     //CHECKSTYLE:ON
 
+    public static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static {
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(Form.class, new KieFormDeserializer());
+        MAPPER.registerModule(module);
+    }
+
     @Override
     public List<ProcessDefinition> listDefinitions(Connection connection) {
-        RestTemplate restTemplate = restTemplateBuilder
-                .basicAuthorization(connection.getUsername(), connection.getPassword())
-                .build();
+        RestTemplate restTemplate = getRestTemplate(connection);
 
         List<ProcessDefinition> result = new ArrayList<>();
 
@@ -86,5 +95,11 @@ public class KieProcessService implements ProcessService {
 
         return Optional.ofNullable(response.getProcesses())
                 .orElse(Collections.emptyList());
+    }
+
+    private RestTemplate getRestTemplate(Connection connection) {
+        return restTemplateBuilder
+                .basicAuthorization(connection.getUsername(), connection.getPassword())
+                .build();
     }
 }

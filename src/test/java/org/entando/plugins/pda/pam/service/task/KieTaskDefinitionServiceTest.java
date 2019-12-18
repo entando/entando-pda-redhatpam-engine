@@ -2,6 +2,7 @@ package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
+import static org.entando.plugins.pda.pam.service.task.KieTaskService.TASK_LIST_URL;
 import static org.entando.plugins.pda.pam.util.KieTaskTestHelper.mockTasksRequest;
 import static org.entando.plugins.pda.pam.util.KieTaskTestHelper.mockVariablesRequest;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -60,7 +61,7 @@ public class KieTaskDefinitionServiceTest {
     @Test
     public void shouldReturnTaskColumns() throws Exception {
         // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+        mockServer.expect(requestTo(containsString(TASK_LIST_URL)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(
@@ -81,7 +82,7 @@ public class KieTaskDefinitionServiceTest {
     @Test
     public void shouldReturnEmptyTaskColumnsWhenThereIsNoTaskInTheList() throws Exception {
         // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
+        mockServer.expect(requestTo(containsString(TASK_LIST_URL)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(new KieTasksResponse(Collections.emptyList())),
