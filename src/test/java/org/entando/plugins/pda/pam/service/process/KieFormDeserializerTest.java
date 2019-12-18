@@ -6,11 +6,9 @@ import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
 import java.util.List;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.util.KieProcessFormTestHelper;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class KieFormDeserializerTest {
