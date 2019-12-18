@@ -11,9 +11,7 @@ import java.util.List;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.util.KieProcessFormTestHelper;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class KieFormDeserializerTest {
 
