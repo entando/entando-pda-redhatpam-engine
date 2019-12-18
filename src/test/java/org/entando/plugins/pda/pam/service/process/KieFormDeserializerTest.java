@@ -16,19 +16,15 @@ import org.junit.Test;
 public class KieFormDeserializerTest {
 
     @Test
-    public void shouldDeserializeKieJsonToForms() {
+    public void shouldDeserializeKieJsonToForms() throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Form.class, new KieFormDeserializer());
         mapper.registerModule(module);
 
-        try {
-            List<Form> result = mapper.readValue(readFromFile("process-form.json"), new TypeReference<List<Form>>() {});
-            assertThat(result).isEqualTo(KieProcessFormTestHelper.createProcessForms());
-        } catch (IOException e) {
-            Assert.fail();
-        }
+        List<Form> result = mapper.readValue(readFromFile("process-form.json"), new TypeReference<List<Form>>() {});
+        assertThat(result).isEqualTo(KieProcessFormTestHelper.createProcessForms());
     }
 
 }
