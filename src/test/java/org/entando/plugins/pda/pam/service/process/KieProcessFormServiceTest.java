@@ -1,187 +1,76 @@
 package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.plugins.pda.core.utils.TestUtils.PROCESS_DEFINITION_ID;
+import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import org.drools.core.io.impl.ClassPathResource;
+import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
-import org.entando.plugins.pda.core.model.form.FormField;
-import org.entando.plugins.pda.core.model.form.FormFieldInteger;
-import org.entando.plugins.pda.core.model.form.FormFieldText;
-import org.entando.plugins.pda.core.model.form.FormFieldType;
-import org.junit.Assert;
+import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.process.model.KieDefinitionId;
+import org.entando.plugins.pda.pam.util.KieProcessFormTestHelper;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.kie.server.api.exception.KieServicesHttpException;
+import org.kie.server.client.UIServicesClient;
+import org.springframework.http.HttpStatus;
 
-@SuppressWarnings("PMD.ExcessiveMethodLength")
 public class KieProcessFormServiceTest {
 
-    @Test
-    public void deserializeProcessFormJson() {
+    private Connection connection;
+    private KieProcessFormService kieProcessFormService;
+    private UIServicesClient uiServicesClient;
 
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(Form.class, new KieFormDeserializer());
-        mapper.registerModule(module);
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
-        List<Form> result = new ArrayList<>();
+    @Before
+    public void setUp() {
+        connection = Connection.builder().build();
 
-        String json = new String(new ClassPathResource("process-form.json").getBytes());
+        KieApiService kieApiService = mock(KieApiService.class);
+        uiServicesClient = mock(UIServicesClient.class);
 
-        try {
-            JsonNode parentNode = mapper.readTree(json);
+        when(kieApiService.getUiServicesClient(connection)).thenReturn(uiServicesClient);
 
-            for (JsonNode childNode : parentNode) {
-
-                Form form  = mapper.treeToValue(childNode, Form.class);
-
-                if (form.getFields().size() > 0) {
-                    result.add(mapper.treeToValue(childNode, Form.class));
-                }
-            }
-
-            assertThat(result.get(0)).isEqualTo(getExpectedListForm().get(0));
-
-        } catch (IOException e) {
-            Assert.fail();
-        }
+        kieProcessFormService = new KieProcessFormService(kieApiService);
     }
 
-    private List<Form> getExpectedListForm() {
+    @Test
+    public void shouldGetProcessForm() {
 
-        List<Form> result = new ArrayList<>();
+        KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
-        List<FormField> fields1 = new ArrayList<>();
+        // Given
+        List<Form> expected = KieProcessFormTestHelper.createProcessForms();
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+            .thenReturn(readFromFile("process-form.json"));
 
-        fields1.add(FormFieldInteger.builder()
-                .id("field_815717729253767E11")
-                .name("age")
-                .label("Age of property")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Age of property")
-                .build()
-        );
+        // When
+        List<Form> result = kieProcessFormService.getProcessForm(connection, processId.toString());
 
-        fields1.add(FormFieldText.builder()
-                .id("field_236289653097941E11")
-                .name("address")
-                .label("Address of property")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.STRING)
-                .placeholder("Address of property")
-                .maxLength(100)
-                .build()
-        );
+        // Then
+        assertThat(result).isEqualTo(expected);
+        verify(uiServicesClient)
+                .getProcessForm(processId.getContainerId(), processId.getDefinitionId());
+    }
 
-        fields1.add(FormFieldText.builder()
-                .id("field_9471909295199063E11")
-                .name("locale")
-                .label("Locale")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.STRING)
-                .placeholder("Locale")
-                .maxLength(100)
-                .build()
-        );
+    @Test
+    public void shouldThrowProcessNotFound() {
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+                .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
 
-        fields1.add(FormFieldInteger.builder()
-                .id("field_4113393327260706E12")
-                .name("saleprice")
-                .label("Sale Price")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Sale Price")
-                .build()
-        );
+        expectedException.expect(ProcessNotFoundException.class);
 
-        result.add(Form.builder()
-                .id("2aeaf281-71e1-45a5-9ab3-0abd855d924e")
-                .name("Property")
-                .fields(fields1)
-                .build());
-
-        List<FormField> fields2 = new ArrayList<>();
-
-        fields2.add(FormFieldInteger.builder()
-                .id("field_290268943445829E11")
-                .name("downpayment")
-                .label("Down Payment")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Down Payment")
-                .build()
-        );
-
-        fields2.add(FormFieldInteger.builder()
-                .id("field_0343033866589585E12")
-                .name("amortization")
-                .label("Years of amortization")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Years of amortization")
-                .build()
-        );
-
-        result.add(Form.builder()
-                .id("b71de860-4d3e-4b0c-95e9-c41e4d06f787")
-                .name("Application")
-                .fields(fields2)
-                .build());
-
-        List<FormField> fields3 = new ArrayList<>();
-
-        fields3.add(FormFieldText.builder()
-                .id("field_922175737010885E11")
-                .name("name")
-                .label("Name")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.STRING)
-                .placeholder("Name")
-                .maxLength(100)
-                .build()
-        );
-
-        fields3.add(FormFieldInteger.builder()
-                .id("field_405154649767496E12")
-                .name("annualincome")
-                .label("Annual Income")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Annual Income")
-                .build()
-        );
-
-        fields3.add(FormFieldInteger.builder()
-                .id("field_670713100411637E11")
-                .name("ssn")
-                .label("SSN")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("SSN")
-                .build()
-        );
-
-        result.add(Form.builder()
-                .id("0cb94115-b991-4dbe-a342-00d99a1cdd2d")
-                .name("Applicant")
-                .fields(fields3)
-                .build());
-
-        return result;
+        kieProcessFormService.getProcessForm(connection, PROCESS_DEFINITION_ID);
     }
 
 }

@@ -7,12 +7,16 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.service.process.ProcessFormService;
+import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieDefinitionId;
 import org.entando.web.exception.InternalServerException;
+import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.client.UIServicesClient;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,11 +39,15 @@ public class KieProcessFormService implements ProcessFormService {
 
         UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
 
-        String json = uiServicesClient
-                .getProcessForm(compositeId.getContainerId(), compositeId.getDefinitionId());
-
         try {
+            String json = uiServicesClient
+                    .getProcessForm(compositeId.getContainerId(), compositeId.getDefinitionId());
             return MAPPER.readValue(json, new TypeReference<List<Form>>() {});
+        } catch (KieServicesHttpException e) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
+                throw new ProcessNotFoundException(e);
+            }
+            throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
         } catch (IOException e) {
             throw new InternalServerException(e.getMessage(), e);
         }
