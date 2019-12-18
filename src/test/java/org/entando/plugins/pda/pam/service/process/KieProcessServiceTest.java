@@ -39,7 +39,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-@SuppressWarnings("PMD.ExcessiveImports")
 public class KieProcessServiceTest {
 
     private Connection connection;
