@@ -11,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.ExpectedCount.manyTimes;
 import static org.springframework.test.web.client.ExpectedCount.once;
+import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -82,7 +83,7 @@ public class KieTaskDefinitionServiceTest {
     @Test
     public void shouldReturnEmptyTaskColumnsWhenThereIsNoTaskInTheList() throws Exception {
         // Given
-        mockServer.expect(requestTo(containsString(TASK_LIST_URL)))
+        mockServer.expect(times(2), requestTo(containsString(TASK_LIST_URL)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(new KieTasksResponse(Collections.emptyList())),
