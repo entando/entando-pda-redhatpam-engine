@@ -39,6 +39,10 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class KieTaskService implements TaskService {
 
+    public static final int LAST_PAGE_TRUE = 1;
+    public static final int LAST_PAGE_FALSE = 0;
+    public static final int SIMPLE_NAVIGATION = -1;
+
     private final RestTemplateBuilder restTemplateBuilder;
 
     //CHECKSTYLE:OFF
@@ -77,7 +81,19 @@ public class KieTaskService implements TaskService {
                 });
 
         TaskUtil.flatProperties(result);
-        return new PagedMetadata<>(request, result).toRestResponse(); //TODO how to efficiently query total tasks size?
+
+        return getTaskPagedRestResponse(connection, user, request, restTemplate, result);
+    }
+
+    private PagedRestResponse<Task> getTaskPagedRestResponse(Connection connection, AuthenticatedUser user,
+            PagedListRequest request, RestTemplate restTemplate, List<Task> result) {
+        PagedListRequest nextPageRequest = new PagedListRequest(request.getPage() + 1, request.getPageSize(),
+                request.getSort(), request.getDirection());
+        List<KieTask> tasks = getTasks(restTemplate, connection, user, nextPageRequest);
+        PagedMetadata<Task> pagedMetadata = new PagedMetadata<>(request.getPage(), request.getPageSize(),
+                tasks.isEmpty() ? LAST_PAGE_TRUE : LAST_PAGE_FALSE, SIMPLE_NAVIGATION);
+        pagedMetadata.setBody(result);
+        return pagedMetadata.toRestResponse();
     }
 
     @Override
