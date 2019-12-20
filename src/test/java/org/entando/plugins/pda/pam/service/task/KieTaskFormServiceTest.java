@@ -1,6 +1,7 @@
 package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.plugins.pda.core.utils.TestUtils.NON_EXISTENT_TASK_ID;
 import static org.entando.plugins.pda.core.utils.TestUtils.TASK_DEFINITION_ID;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -70,7 +71,7 @@ public class KieTaskFormServiceTest {
 
         expectedException.expect(TaskNotFoundException.class);
 
-        kieTaskFormService.getTaskForm(connection, TASK_DEFINITION_ID);
+        kieTaskFormService.getTaskForm(connection, NON_EXISTENT_TASK_ID);
     }
 
 }
