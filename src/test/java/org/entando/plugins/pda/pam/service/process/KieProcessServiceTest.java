@@ -91,13 +91,13 @@ public class KieProcessServiceTest {
         // Given
         when(uiServicesClient.getProcessInstanceImage(
                 KieProcessTestHelper.PROCESS_CONTAINER_ID_1, Long.valueOf(KieProcessTestHelper.PROCESS_ID_1)))
-            .thenReturn(KieProcessTestHelper.PROCESS_DIAGRAM__1);
+            .thenReturn(KieProcessTestHelper.PROCESS_DIAGRAM_1);
 
         // When
         String diagram = kieProcessService.getProcessDiagram(connection, KieProcessTestHelper.PROCESS_PDA_ID);
 
         // Then
-        assertThat(diagram).isEqualTo(KieProcessTestHelper.PROCESS_DIAGRAM__1);
+        assertThat(diagram).isEqualTo(KieProcessTestHelper.PROCESS_DIAGRAM_1);
     }
 
     @Test

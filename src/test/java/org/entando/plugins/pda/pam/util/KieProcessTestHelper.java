@@ -18,7 +18,7 @@ public class KieProcessTestHelper {
     public static final String PROCESS_PDA_ID = String.format("%s@%s", PROCESS_ID_1, PROCESS_CONTAINER_ID_1);
     public static final String PROCESS_NAME_1 = "Process 1";
     public static final String PROCESS_PROP_1 = "New Prop 1";
-    public static final String PROCESS_DIAGRAM__1 = "<svg>diagram</svg>";
+    public static final String PROCESS_DIAGRAM_1 = "<svg>diagram</svg>";
 
     public static final String PROCESS_DEFINITION_ID_2 = "process-2";
     public static final String PROCESS_NAME_2 = "Process 2";
