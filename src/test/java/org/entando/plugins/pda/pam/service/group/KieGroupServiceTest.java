@@ -12,7 +12,7 @@ import java.util.List;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieDefinitionId;
+import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.api.model.definition.AssociatedEntitiesDefinition;

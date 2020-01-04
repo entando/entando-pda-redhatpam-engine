@@ -13,7 +13,7 @@ import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieDefinitionId;
+import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.entando.plugins.pda.pam.util.KieProcessFormTestHelper;
 import org.junit.Before;
 import org.junit.Rule;

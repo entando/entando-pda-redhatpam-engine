@@ -1,28 +1,32 @@
 package org.entando.plugins.pda.pam.service.task;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
-import static org.entando.plugins.pda.pam.util.KieTaskTestHelper.mockTasksRequest;
-import static org.entando.plugins.pda.pam.util.KieTaskTestHelper.mockVariablesRequest;
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.ExpectedCount.manyTimes;
-import static org.springframework.test.web.client.ExpectedCount.once;
-import static org.springframework.test.web.client.ExpectedCount.times;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.entando.keycloak.security.AuthenticatedUser;
+import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
-import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
-import org.entando.plugins.pda.pam.service.task.model.KieTasksResponse;
+import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.task.model.KieTask;
+import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
@@ -31,208 +35,214 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.kie.server.api.exception.KieServicesHttpException;
+import org.kie.server.api.model.instance.TaskInstance;
+import org.kie.server.api.model.instance.TaskSummary;
+import org.kie.server.client.UserTaskServicesClient;
+import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.http.HttpStatus;
 
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.ExcessiveImports"})
 public class KieTaskServiceTest {
 
     private KieTaskService kieTaskService;
-
-    private MockRestServiceServer mockServer;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private UserTaskServicesClient taskClient;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
-        RestTemplate restTemplate = new RestTemplate();
-        RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
-        when(restTemplateBuilder.basicAuthorization(anyString(), anyString())).thenReturn(restTemplateBuilder);
-        when(restTemplateBuilder.build()).thenReturn(restTemplate);
-        mockServer = MockRestServiceServer.createServer(restTemplate);
+        KieApiService kieApiService = mock(KieApiService.class);
+        taskClient = mock(UserTaskServicesClient.class);
 
-        kieTaskService = new KieTaskService(restTemplateBuilder);
+        when(kieApiService.getUserTaskServicesClient(any())).thenReturn(taskClient);
+
+        kieTaskService = new KieTaskService(kieApiService);
     }
 
     @Test
-    public void shouldListTasksFromApi() throws Exception {
+    public void shouldListTasks() {
         // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(mockServer, mapper, times(2));
-        mockTasksRequest(mockServer, mapper, manyTimes());
+        List<TaskSummary> expected = KieTaskTestHelper.createKieTaskList();
+        PagedListRequest request = new PagedListRequest(1, 10, "id", Filter.DESC_ORDER);
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = null;
+
+        mockTaskList(anyString(), request.getPageSize(), expected);
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
-        // Then
-        mockServer.verify();
-        assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListFull());
+        // Then //TODO validate sort?
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,request.getPage() - 1, request.getPageSize());
     }
 
     @Test
-    public void shouldListTasksFromApiWithFilterAndSort() throws Exception {
+    public void shouldListTasksUsingConnectionUsername() {
         // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andExpect(queryParam("page", "0"))
-                .andExpect(queryParam("pageSize", "10"))
-                .andExpect(queryParam("sort", "task-id"))
-                .andExpect(queryParam("sortOrder", "false"))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(mockServer, mapper, times(2));
-        mockTasksRequest(mockServer, mapper, manyTimes());
+        List<TaskSummary> expected = KieTaskTestHelper.createKieTaskList();
+        PagedListRequest request = new PagedListRequest();
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = null;
+        String username = connection.getUsername();
+
+        mockTaskList(eq(username), request.getPageSize(), expected);
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService
-                .list(getDummyConnection(), null, new PagedListRequest(1, 10, "task-id", Filter.DESC_ORDER));
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
         // Then
-        mockServer.verify();
-        assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListFull());
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username);
     }
 
     @Test
-    public void shouldListUsingAuthenticatedUser() throws Exception {
+    public void shouldListTasksUsingAuthenticatedUser() {
         // Given
-        String username = "chuck_norris";
-        AuthenticatedUser user = getDummyUser(username);
-        mockServer.expect(times(2), requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andExpect(queryParam("user", username))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskListUser())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(mockServer, mapper, once());
-        mockTasksRequest(mockServer, mapper, once());
+        List<TaskSummary> expected = KieTaskTestHelper.createKieTaskList();
+        PagedListRequest request = new PagedListRequest();
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = getDummyUser();
+        String username = user.getAccessToken().getPreferredUsername();
+
+        mockTaskList(eq(username), request.getPageSize(), expected);
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), user, new PagedListRequest());
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
         // Then
-        mockServer.verify();
-        assertThat(tasks.getPayload()).isEqualTo(KieTaskTestHelper.createKieTaskListUser());
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username, null, null);
     }
 
     @Test
-    public void shouldReturnFlattenData() throws Exception {
-        // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(
-                                new KieTasksResponse(KieTaskTestHelper.createKieTaskListWithEmbeddedData())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(mockServer, mapper, once());
-        mockTasksRequest(mockServer, mapper, manyTimes());
+    public void shouldReturnFalseForLastPageOnTaskList() {
+        PagedListRequest request = new PagedListRequest(1, 2, "id", Filter.ASC_ORDER);
+        Connection connection = getDummyConnection();
+        List<TaskSummary> fullList = KieTaskTestHelper.createKieTaskList();
+        List<TaskSummary> firstPage = fullList.subList(0, 2);
+        List<TaskSummary> lastPage = fullList.subList(2, 3);
+
+        mockTaskList(anyString(), request.getPageSize(), firstPage, lastPage);
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
 
         // Then
-        mockServer.verify();
-        assertThat(tasks.getPayload().get(0).getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2))
-                .isNotNull();
-        assertThat(tasks.getPayload().get(1).getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2))
-                .isNotNull();
+        verifyTaskListResult(response, 2, firstPage, KieTaskService.LAST_PAGE_FALSE);
     }
 
     @Test
-    public void shouldGetTask() throws Exception {
+    public void shouldReturnTrueForLastPageOnTaskList1() {
         // Given
-        Task generatedTask = KieTaskTestHelper.generateKieTask();
-        KieInstanceId taskId = new KieInstanceId(generatedTask.getContainerId(), generatedTask.getId());
+        PagedListRequest request = new PagedListRequest(1, 2, "id", Filter.ASC_ORDER);
+        Connection connection = getDummyConnection();
+        List<TaskSummary> firstPage = KieTaskTestHelper.createKieTaskList().subList(0, 2);
+        List<TaskSummary> lastPage = new ArrayList<>();
 
-        mockServer.expect(requestTo(
-                containsString(KieTaskService.TASK_URL
-                        .replace("{tInstanceId}", taskId.getInstanceId().toString()))))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(generatedTask),
-                        MediaType.APPLICATION_JSON));
-        mockTasksRequest(mockServer, mapper, once());
-        mockVariablesRequest(mockServer, mapper, once());
+        mockTaskList(anyString(), request.getPageSize(), firstPage, lastPage);
 
         // When
-        Task task = kieTaskService.get(getDummyConnection(), null, taskId.toString());
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
 
         // Then
-        mockServer.verify();
-        assertThat(generatedTask).isEqualTo(task);
+        verifyTaskListResult(response, 2, firstPage, KieTaskService.LAST_PAGE_TRUE);
     }
 
     @Test
-    public void shouldReturnFlattenDataOnGet() throws Exception {
+    public void shouldReturnTrueForLastPageOnTaskList2() {
         // Given
-        Task createdTask = KieTaskTestHelper.createKieTaskListWithEmbeddedData().get(0);
-        KieInstanceId taskId = new KieInstanceId(createdTask.getContainerId(), createdTask.getId());
+        PagedListRequest request = new PagedListRequest(2, 2, "id", Filter.ASC_ORDER);
+        Connection connection = getDummyConnection();
+        List<TaskSummary> lastPage = KieTaskTestHelper.createKieTaskList().subList(2, 3);
 
-        mockServer.expect(requestTo(
-                containsString(KieTaskService.TASK_URL
-                        .replace("{tInstanceId}", taskId.getInstanceId().toString()))))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(createdTask),
-                        MediaType.APPLICATION_JSON));
-        mockTasksRequest(mockServer, mapper, once());
-        mockVariablesRequest(mockServer, mapper, once());
+        mockTaskList(anyString(), request.getPageSize(), lastPage);
 
         // When
-        Task task = kieTaskService.get(getDummyConnection(), null, taskId.toString());
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
 
         // Then
-        assertThat(task.getData().get(KieTaskTestHelper.FIELD_1 + "." + KieTaskTestHelper.FIELD_2)).isNotNull();
+        verifyTaskListResult(response, 1, lastPage, KieTaskService.LAST_PAGE_TRUE);
     }
 
     @Test
-    public void shouldReturnFalseForLastPageOnTaskList() throws Exception {
+    public void shouldGetTaskWithFlatVariables() {
         // Given
-        mockServer.expect(times(2), requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(mockServer, mapper, times(2));
-        mockTasksRequest(mockServer, mapper, manyTimes());
+        TaskInstance expected = KieTaskTestHelper.generateKieTask();
+        KieInstanceId taskId = new KieInstanceId(expected.getContainerId(), expected.getId());
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = getDummyUser();
+
+        when(taskClient.getTaskInstance(eq(taskId.getContainerId()), eq(taskId.getInstanceId()),
+                anyBoolean(), anyBoolean(), anyBoolean()))
+                .thenReturn(expected);
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
+        Task task = kieTaskService.get(connection, user, taskId.toString());
 
         // Then
-        assertThat(tasks.getMetadata().getTotalItems()).isEqualTo(KieTaskService.SIMPLE_NAVIGATION);
-        assertThat(tasks.getMetadata().getLastPage()).isEqualTo(KieTaskService.LAST_PAGE_FALSE);
+        verify(taskClient, times(1))
+                .getTaskInstance(eq(taskId.getContainerId()), eq(taskId.getInstanceId()), eq(true),
+                        eq(true), eq(true));
+
+        assertThat(task).isEqualTo(KieTask.from(expected));
+        assertThat(task.getVariables().get(KieTaskTestHelper.EXTRA_VARS_FLAT_ATTRIBUTE_2))
+                .isEqualTo(KieTaskTestHelper.EXTRA_VARS_VALUE_2);
+        assertThat(task.getVariables().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_2))
+                .isNull();
     }
 
     @Test
-    public void shouldReturnTrueForLastPageOnTaskList() throws Exception {
+    public void shouldThrowNotFoundWhenGetTask() {
         // Given
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(KieTaskTestHelper.createKieTaskList())),
-                        MediaType.APPLICATION_JSON));
-        mockVariablesRequest(mockServer, mapper, times(2));
-        mockTasksRequest(mockServer, mapper, manyTimes());
-        mockServer.expect(requestTo(containsString(KieTaskService.TASK_LIST_URL)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(new KieTasksResponse(Collections.emptyList())),
-                        MediaType.APPLICATION_JSON));
+        expectedException.expect(TaskNotFoundException.class);
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(10));
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = getDummyUser();
+
+        when(taskClient.getTaskInstance(anyString(), anyLong(), anyBoolean(), anyBoolean(), anyBoolean()))
+                .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
 
         // When
-        PagedRestResponse<Task> tasks = kieTaskService.list(getDummyConnection(), null, new PagedListRequest());
+        kieTaskService.get(connection, user, taskId.toString());
+    }
 
-        // Then
-        assertThat(tasks.getMetadata().getTotalItems()).isEqualTo(-1);
-        assertThat(tasks.getMetadata().getLastPage()).isEqualTo(KieTaskService.LAST_PAGE_TRUE);
+    @SafeVarargs
+    private final void mockTaskList(String username, Integer pageSize, List<TaskSummary>... pages) {
+        OngoingStubbing<List<TaskSummary>> stub = when(
+                taskClient.findTasksAssignedAsPotentialOwner(username, isNull(), anyInt(), eq(pageSize)));
+
+        for (List<TaskSummary> taskSummaries : pages) {
+            stub = stub.thenReturn(taskSummaries);
+        }
+    }
+
+    private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
+            int lastPage) {
+        verifyTaskListResult(response, calls, expected, lastPage, null, null, null);
+    }
+
+    private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
+            int lastPage, Integer page, Integer pageSize) {
+        verifyTaskListResult(response, calls, expected, lastPage, null, page, pageSize);
+    }
+
+    private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
+            int lastPage, String username) {
+        verifyTaskListResult(response, calls, expected, lastPage, username, null, null);
+    }
+
+    private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
+            int lastPage, String username, Integer page, Integer pageSize) {
+
+        verify(taskClient, times(calls))
+                .findTasksAssignedAsPotentialOwner(username == null ? anyString() : eq(username), isNull(),
+                        page == null ? anyInt() : eq(page), pageSize == null ? anyInt() : eq(pageSize));
+
+        assertThat(response.getPayload()).isEqualTo(expected.stream()
+                .map(KieTask::from)
+                .collect(Collectors.toList()));
+
+        assertThat(response.getMetadata().getTotalItems()).isEqualTo(KieTaskService.SIMPLE_NAVIGATION);
+        assertThat(response.getMetadata().getLastPage()).isEqualTo(lastPage);
     }
 }

@@ -15,7 +15,7 @@ import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
+import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskFormTestHelper;
 import org.junit.Before;
 import org.junit.Rule;

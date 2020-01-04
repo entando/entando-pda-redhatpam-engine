@@ -13,7 +13,7 @@ import org.entando.plugins.pda.core.request.CreateCommentRequest;
 import org.entando.plugins.pda.core.service.task.TaskCommentService;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
+import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.api.model.instance.TaskComment;
 import org.kie.server.client.UserTaskServicesClient;

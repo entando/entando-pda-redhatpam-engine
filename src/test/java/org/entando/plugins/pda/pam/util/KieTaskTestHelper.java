@@ -1,28 +1,19 @@
 package org.entando.plugins.pda.pam.util;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang.RandomStringUtils;
 import org.entando.plugins.pda.core.model.Comment;
-import org.entando.plugins.pda.pam.service.task.model.KieProcessVariable;
-import org.entando.plugins.pda.pam.service.task.model.KieProcessVariablesResponse;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
-import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.test.web.client.MockRestServiceServer;
+import org.kie.server.api.model.instance.TaskInstance;
+import org.kie.server.api.model.instance.TaskSummary;
 
 @UtilityClass
 @SuppressWarnings("PMD.TooManyMethods")
@@ -31,32 +22,26 @@ public class KieTaskTestHelper {
     public static final String CONTAINER_ID_1 = "c1";
     public static final String CONTAINER_ID_2 = "c2";
 
-    public static final String TASK_ID_1 = "1";
+    public static final Long TASK_ID_1 = 1L;
     public static final String TASK_NAME_1 = "Task 1";
 
-    public static final String TASK_ID_2 = "2";
+    public static final Long TASK_ID_2 = 2L;
     public static final String TASK_NAME_2 = "Task 2";
 
-    public static final String TASK_ID_3 = "3";
+    public static final Long TASK_ID_3 = 3L;
     public static final String TASK_NAME_3 = "Task 3";
 
-    public static final String PROCESS_INSTANCE_ID_1 = "1";
-    public static final String PROCESS_INSTANCE_ID_2 = "2";
+    public static final Long PROCESS_INSTANCE_ID_1 = 1L;
+    public static final Long PROCESS_INSTANCE_ID_2 = 2L;
 
     public static final String EXTRA_VARS_ATTRIBUTE_1 = "attribute1";
     public static final String EXTRA_VARS_VALUE_1 = "value attribute1";
 
     public static final String EXTRA_VARS_ATTRIBUTE_2 = "attribute2";
-    public static final String EXTRA_VARS_VALUE_2 = "2";
-
-    public static final String EXTRA_VARS_ATTRIBUTE_3 = "attribute3";
-    public static final String EXTRA_VARS_VALUE_3 = "value attribute3";
-
-    public static final String EXTRA_VARS_ATTRIBUTE_4 = "attribute4";
-    public static final String EXTRA_VARS_VALUE_4 = "4";
-
-    public static final String FIELD_1 = "field1";
-    public static final String FIELD_2 = "field2";
+    public static final String EXTRA_VARS_FLAT_ATTRIBUTE_2 = "attribute2.object.innerObject";
+    public static final String EXTRA_VARS_VALUE_2 = "value attribute2";
+    public static final Map<String, Object> EXTRA_VARS_COMPLEX_VALUE_2 = Collections.singletonMap("object",
+            Collections.singletonMap("innerObject", "value attribute2"));
 
     public static final String TASK_COMMENT_ID_1_1 = "1";
     public static final String TASK_COMMENT_1_1 = "This is a task comment!";
@@ -69,134 +54,65 @@ public class KieTaskTestHelper {
     public static final String TASK_COMMENT_OWNER_1 = "Chuck Norris";
     public static final String TASK_COMMENT_OWNER_2 = "Jack Bauer";
 
-    public List<KieTask> createKieTaskList() {
-        List<KieTask> result = new ArrayList<>();
-        result.add(KieTask.builder()
+    public static final Set<String> TASK_DEFINITION_COLUMNS = Stream.of(
+            "id", "name", "description", "createdBy", "createdAt", "dueTo", "status", "owner", "priority", "subject",
+            "type", "form", "activatedAt", "skipable", "workItemId", "processId", "slaCompliance", "slaDueTo",
+            "potentialOwners", "businessAdmins")
+            .collect(Collectors.toSet());
+
+    public List<TaskSummary> createKieTaskList() {
+        List<TaskSummary> result = new ArrayList<>();
+        result.add(TaskSummary.builder()
                 .id(TASK_ID_1)
                 .name(TASK_NAME_1)
+                .status(KieTask.KIE_STATUS_COMPLETED)
                 .processInstanceId(PROCESS_INSTANCE_ID_1)
                 .containerId(CONTAINER_ID_1)
                 .build());
-        result.add(KieTask.builder()
+        result.add(TaskSummary.builder()
                 .id(TASK_ID_2)
                 .name(TASK_NAME_2)
-                .processInstanceId(PROCESS_INSTANCE_ID_1)
+                .status(KieTask.KIE_STATUS_RESERVED)
+                .processInstanceId(PROCESS_INSTANCE_ID_2)
                 .containerId(CONTAINER_ID_1)
                 .build());
-        result.add(KieTask.builder()
+        result.add(TaskSummary.builder()
                 .id(TASK_ID_3)
                 .name(TASK_NAME_3)
+                .status(KieTask.KIE_STATUS_IN_PROGRESS)
                 .processInstanceId(PROCESS_INSTANCE_ID_2)
                 .containerId(CONTAINER_ID_2)
                 .build());
         return result;
     }
 
-    public List<KieTask> createKieTaskListWithEmbeddedData() {
-        List<KieTask> result = new ArrayList<>();
-        result.add(KieTask.builder()
-                .id(TASK_ID_1)
-                .name(TASK_NAME_1)
-                .processInstanceId(PROCESS_INSTANCE_ID_1)
-                .containerId(CONTAINER_ID_1)
-                .extraProperty(FIELD_1,
-                        ImmutableMap.of("com.organization.mycustomtype", ImmutableMap.of(FIELD_2, "value")))
-                .build());
-        result.add(KieTask.builder()
+    public List<TaskSummary> createKieTaskListUser() {
+        List<TaskSummary> result = new ArrayList<>();
+        result.add(TaskSummary.builder()
                 .id(TASK_ID_2)
                 .name(TASK_NAME_2)
-                .processInstanceId(PROCESS_INSTANCE_ID_1)
-                .containerId(CONTAINER_ID_1)
-                .extraProperty(FIELD_1,
-                        ImmutableMap.of("com.organization.mycustomtype", ImmutableMap.of(FIELD_2, "value")))
-                .build());
-        return result;
-    }
-
-    public List<KieTask> createKieTaskListFull() {
-        List<KieTask> result = new ArrayList<>();
-        result.add(KieTask.builder()
-                .id(TASK_ID_1)
-                .name(TASK_NAME_1)
-                .processInstanceId(PROCESS_INSTANCE_ID_1)
-                .containerId(CONTAINER_ID_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_VALUE_2)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
-                .build());
-
-        result.add(KieTask.builder()
-                .id(TASK_ID_2)
-                .name(TASK_NAME_2)
-                .processInstanceId(PROCESS_INSTANCE_ID_1)
-                .containerId(CONTAINER_ID_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_VALUE_2)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
-                .build());
-
-        result.add(KieTask.builder()
-                .id(TASK_ID_3)
-                .name(TASK_NAME_3)
+                .status(KieTask.KIE_STATUS_RESERVED)
                 .processInstanceId(PROCESS_INSTANCE_ID_2)
-                .containerId(CONTAINER_ID_2)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_VALUE_2)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
-                .build());
-
-        return result;
-    }
-
-    public List<KieTask> createKieTaskListUser() {
-        List<KieTask> result = new ArrayList<>();
-        result.add(KieTask.builder()
-                .id(TASK_ID_1)
-                .name(TASK_NAME_1)
-                .processInstanceId(PROCESS_INSTANCE_ID_1)
                 .containerId(CONTAINER_ID_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_VALUE_2)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
                 .build());
 
         return result;
     }
 
-    public List<KieProcessVariable> createKieProcessVariables() {
-        return Arrays.asList(
-                KieProcessVariable.builder()
-                        .name(EXTRA_VARS_ATTRIBUTE_1)
-                        .value(EXTRA_VARS_VALUE_1)
-                        .build(),
-                KieProcessVariable.builder()
-                        .name(EXTRA_VARS_ATTRIBUTE_2)
-                        .value(EXTRA_VARS_VALUE_2)
-                        .build()
-        );
-    }
-
-    public KieTaskDetails createKieTaskDetails() {
-        return KieTaskDetails.builder()
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_VALUE_3)
-                .extraProperty(EXTRA_VARS_ATTRIBUTE_4, EXTRA_VARS_VALUE_4)
-                .build();
-    }
-
-    public KieTask generateKieTask() {
-        return KieTask.builder()
-                .id(RandomStringUtils.randomNumeric(10))
+    public TaskInstance generateKieTask() {
+        return TaskInstance.builder()
+                .id(Long.valueOf(RandomStringUtils.randomNumeric(10)))
+                .containerId(RandomStringUtils.randomAlphabetic(10))
+                .status(KieTask.KIE_STATUS_RESERVED)
                 .name(RandomStringUtils.randomAlphabetic(20))
-                .processInstanceId(RandomStringUtils.randomNumeric(10))
+                .processInstanceId(Long.valueOf(RandomStringUtils.randomNumeric(10)))
                 .containerId(RandomStringUtils.randomNumeric(10))
+                .inputData(Collections.singletonMap(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1))
+                .outputData(Collections.singletonMap(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_COMPLEX_VALUE_2))
                 .build();
     }
 
-    public List<Comment> createKieTaskComments(String taskId) {
+    public List<Comment> createKieTaskComments(Long taskId) {
         List<Comment> result = new ArrayList<>();
 
         if (TASK_ID_1.equals(taskId)) {
@@ -231,23 +147,5 @@ public class KieTaskTestHelper {
                 .createdBy(TASK_COMMENT_OWNER_2)
                 .createdAt(new Date())
                 .build();
-    }
-
-    public static void mockVariablesRequest(MockRestServiceServer mockServer, ObjectMapper mapper,
-            ExpectedCount count) throws JsonProcessingException {
-        mockServer.expect(count, requestTo(containsString("/variables/instances")))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(mapper.writeValueAsString(
-                        new KieProcessVariablesResponse(createKieProcessVariables())),
-                        MediaType.APPLICATION_JSON));
-    }
-
-    public static void mockTasksRequest(MockRestServiceServer mockServer, ObjectMapper mapper,
-            ExpectedCount count) throws JsonProcessingException {
-        mockServer.expect(count, requestTo(containsString("/tasks")))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(
-                        mapper.writeValueAsString(createKieTaskDetails()),
-                        MediaType.APPLICATION_JSON));
     }
 }
