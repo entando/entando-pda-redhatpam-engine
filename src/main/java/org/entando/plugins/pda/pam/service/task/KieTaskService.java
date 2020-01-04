@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.CommentNotFoundException;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
@@ -80,7 +81,9 @@ public class KieTaskService implements TaskService {
 
             return KieTask.from(task);
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
+                    //Some endpoints return 500 instead of 404
+                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
                 throw new TaskNotFoundException(e);
             }
 
