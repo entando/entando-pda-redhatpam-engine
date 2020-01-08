@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
-import org.entando.plugins.pda.core.exception.CommentNotFoundException;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
+import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
@@ -44,6 +44,10 @@ public class KieTaskService implements TaskService {
 
     private List<Task> queryTasks(UserTaskServicesClient client, Connection connection, AuthenticatedUser user,
             PagedListRequest request) {
+
+        if (request.getPage() < 1) {
+            throw new KieInvalidPageStart();
+        }
 
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
         return client.findTasksAssignedAsPotentialOwner(username, null,request.getPage() - 1, request.getPageSize())

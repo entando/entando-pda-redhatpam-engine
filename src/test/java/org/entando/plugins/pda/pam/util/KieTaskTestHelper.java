@@ -1,5 +1,6 @@
 package org.entando.plugins.pda.pam.util;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -41,7 +42,13 @@ public class KieTaskTestHelper {
     public static final String EXTRA_VARS_FLAT_ATTRIBUTE_2 = "attribute2.object.innerObject";
     public static final String EXTRA_VARS_VALUE_2 = "value attribute2";
     public static final Map<String, Object> EXTRA_VARS_COMPLEX_VALUE_2 = Collections.singletonMap("object",
-            Collections.singletonMap("innerObject", "value attribute2"));
+            Collections.singletonMap("innerObject", EXTRA_VARS_VALUE_2));
+
+    public static final String EXTRA_VARS_ATTRIBUTE_3 = "attribute3";
+    public static final String EXTRA_VARS_FLAT_ATTRIBUTE_3 = "attribute3.object.otherObject.innerObject";
+    public static final String EXTRA_VARS_VALUE_3 = "value attribute3";
+    public static final Map<String, Object> EXTRA_VARS_COMPLEX_VALUE_3 = Collections.singletonMap("object",
+            Collections.singletonMap("otherObject", Collections.singletonMap("innerObject", EXTRA_VARS_VALUE_3)));
 
     public static final String TASK_COMMENT_ID_1_1 = "1";
     public static final String TASK_COMMENT_1_1 = "This is a task comment!";
@@ -107,8 +114,10 @@ public class KieTaskTestHelper {
                 .name(RandomStringUtils.randomAlphabetic(20))
                 .processInstanceId(Long.valueOf(RandomStringUtils.randomNumeric(10)))
                 .containerId(RandomStringUtils.randomNumeric(10))
-                .inputData(Collections.singletonMap(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1))
-                .outputData(Collections.singletonMap(EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_COMPLEX_VALUE_2))
+                .inputData(ImmutableMap.of(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1,
+                        EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_COMPLEX_VALUE_2))
+                .outputData(ImmutableMap.of(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1,
+                        EXTRA_VARS_ATTRIBUTE_3, EXTRA_VARS_COMPLEX_VALUE_3))
                 .build();
     }
 

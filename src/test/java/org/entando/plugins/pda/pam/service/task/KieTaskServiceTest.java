@@ -74,7 +74,7 @@ public class KieTaskServiceTest {
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
-        // Then //TODO validate sort?
+        // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,request.getPage() - 1, request.getPageSize());
     }
 
@@ -165,6 +165,21 @@ public class KieTaskServiceTest {
     }
 
     @Test
+    public void shouldThrowInvalidPageWhenPageLowerThan1() {
+        // Given
+        expectedException.expect(TaskNotFoundException.class);
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(10));
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = getDummyUser();
+
+        when(taskClient.getTaskInstance(anyString(), anyLong(), anyBoolean(), anyBoolean(), anyBoolean()))
+                .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
+
+        // When
+        kieTaskService.get(connection, user, taskId.toString());
+    }
+
+    @Test
     public void shouldGetTaskWithFlatVariables() {
         // Given
         TaskInstance expected = KieTaskTestHelper.generateKieTask();
@@ -185,9 +200,19 @@ public class KieTaskServiceTest {
                         eq(true), eq(true));
 
         assertThat(task).isEqualTo(KieTask.from(expected));
-        assertThat(task.getVariables().get(KieTaskTestHelper.EXTRA_VARS_FLAT_ATTRIBUTE_2))
+
+        assertThat(task.getInputData().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_1))
+                .isEqualTo(KieTaskTestHelper.EXTRA_VARS_VALUE_1);
+        assertThat(task.getInputData().get(KieTaskTestHelper.EXTRA_VARS_FLAT_ATTRIBUTE_2))
                 .isEqualTo(KieTaskTestHelper.EXTRA_VARS_VALUE_2);
-        assertThat(task.getVariables().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_2))
+        assertThat(task.getInputData().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_2))
+                .isNull();
+
+        assertThat(task.getOutputData().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_1))
+                .isEqualTo(KieTaskTestHelper.EXTRA_VARS_VALUE_1);
+        assertThat(task.getOutputData().get(KieTaskTestHelper.EXTRA_VARS_FLAT_ATTRIBUTE_3))
+                .isEqualTo(KieTaskTestHelper.EXTRA_VARS_VALUE_3);
+        assertThat(task.getOutputData().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_3))
                 .isNull();
     }
 

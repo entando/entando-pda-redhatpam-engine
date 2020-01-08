@@ -5,6 +5,7 @@ import com.github.wnameless.json.flattener.JsonFlattener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,8 @@ public class TaskUtil {
     @SuppressWarnings("unchecked")
     public static Map<String, Object> flatProperties(Map<String, Object> data) {
         try {
-            String flatten = JsonFlattener.flatten(OBJECT_MAPPER.writeValueAsString(data));
+            String flatten = JsonFlattener.flatten(OBJECT_MAPPER.writeValueAsString(
+                    Optional.ofNullable(data).orElse(new HashMap<>())));
             // remove type information
             return OBJECT_MAPPER.readValue(flatten.replaceAll("\\[.*?\\]", ""), Map.class);
         } catch (IOException e) {

@@ -4,12 +4,8 @@ import static org.entando.plugins.pda.pam.service.task.util.TaskUtil.flatPropert
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -62,7 +58,7 @@ public class KieTask extends Task {
             Map<String, Object> inputData, Map<String, Object> outputData) {
 
         super(new KieInstanceId(containerId, id).toString(), name, description, createdBy, createdAt, dueTo,
-                convertKieTaskStatus(status), owner, flatVariables(inputData, outputData));
+                convertKieTaskStatus(status), owner, flatProperties(inputData), flatProperties(outputData));
 
         this.priority = priority;
         this.subject = subject;
@@ -170,13 +166,6 @@ public class KieTask extends Task {
             default:
                 throw new KieInvalidTaskStatusException();
         }
-    }
-
-    private static Map<String, Object> flatVariables(Map<String, Object> inputData, Map<String, Object> outputData) {
-        return Stream.concat(
-                flatProperties(Optional.ofNullable(inputData).orElse(new HashMap<>())).entrySet().stream(),
-                flatProperties(Optional.ofNullable(outputData).orElse(new HashMap<>())).entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }
