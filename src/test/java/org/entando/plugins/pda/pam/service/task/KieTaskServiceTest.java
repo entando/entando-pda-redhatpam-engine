@@ -24,6 +24,7 @@ import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
+import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
@@ -167,16 +168,13 @@ public class KieTaskServiceTest {
     @Test
     public void shouldThrowInvalidPageWhenPageLowerThan1() {
         // Given
-        expectedException.expect(TaskNotFoundException.class);
-        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(10));
+        expectedException.expect(KieInvalidPageStart.class);
+        PagedListRequest request = new PagedListRequest(0, 10, "id", Filter.ASC_ORDER);
         Connection connection = getDummyConnection();
         AuthenticatedUser user = getDummyUser();
 
-        when(taskClient.getTaskInstance(anyString(), anyLong(), anyBoolean(), anyBoolean(), anyBoolean()))
-                .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
-
         // When
-        kieTaskService.get(connection, user, taskId.toString());
+        kieTaskService.list(connection, user, request);
     }
 
     @Test
