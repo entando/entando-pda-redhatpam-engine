@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KieTaskService implements TaskService {
 
+    public static final int PAGE_START = 1;
     public static final int LAST_PAGE_TRUE = 1;
     public static final int LAST_PAGE_FALSE = 0;
     public static final int SIMPLE_NAVIGATION = -1;
@@ -45,7 +46,7 @@ public class KieTaskService implements TaskService {
     private List<Task> queryTasks(UserTaskServicesClient client, Connection connection, AuthenticatedUser user,
             PagedListRequest request) {
 
-        if (request.getPage() < 1) {
+        if (request.getPage() < PAGE_START) {
             throw new KieInvalidPageStart();
         }
 
