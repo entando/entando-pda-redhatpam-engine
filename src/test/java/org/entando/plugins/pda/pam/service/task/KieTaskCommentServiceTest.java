@@ -20,7 +20,7 @@ import org.entando.plugins.pda.core.request.CreateCommentRequest;
 import org.entando.plugins.pda.core.service.task.TaskCommentService;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
+import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
@@ -123,7 +123,7 @@ public class KieTaskCommentServiceTest {
                 KieTaskTestHelper.TASK_COMMENT_ID_1_1);
 
         // Then
-        assertThat(commentId).isEqualTo(KieTaskTestHelper.TASK_ID_1);
+        assertThat(commentId).isEqualTo(KieTaskTestHelper.TASK_ID_1.toString());
         verify(userTaskServicesClient)
                 .deleteTaskComment(taskId.getContainerId(), taskId.getInstanceId(), Long.valueOf(commentId));
     }

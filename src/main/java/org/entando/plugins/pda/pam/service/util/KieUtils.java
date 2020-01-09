@@ -1,22 +1,11 @@
-package org.entando.plugins.pda.pam.service;
+package org.entando.plugins.pda.pam.service.util;
 
 import lombok.experimental.UtilityClass;
-import org.entando.keycloak.security.AuthenticatedUser;
-import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 
 @UtilityClass
 public class KieUtils {
-
-    public static String createUserFilter(Connection connection, AuthenticatedUser user) {
-        String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
-        return "?user=" + username;
-    }
-
-    public static String createFilters(PagedListRequest request) {
-        return createFilters(request, false);
-    }
 
     public static String createFilters(PagedListRequest request, boolean addQueryOperator) {
         StringBuilder queryUrl = new StringBuilder();

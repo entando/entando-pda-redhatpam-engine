@@ -1,4 +1,4 @@
-package org.entando.plugins.pda.pam.service.process.model;
+package org.entando.plugins.pda.pam.service.util;
 
 import java.util.Optional;
 import org.entando.web.exception.BadRequestException;

@@ -12,7 +12,7 @@ import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.service.process.ProcessFormService;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieDefinitionId;
+import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.entando.web.exception.InternalServerException;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.client.UIServicesClient;

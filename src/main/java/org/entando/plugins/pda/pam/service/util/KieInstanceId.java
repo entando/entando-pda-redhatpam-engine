@@ -1,4 +1,4 @@
-package org.entando.plugins.pda.pam.service.process.model;
+package org.entando.plugins.pda.pam.service.util;
 
 import java.util.Optional;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
@@ -34,6 +34,11 @@ public class KieInstanceId {
         } catch (NumberFormatException e) {
             throw new KieInvalidIdException(e);
         }
+    }
+
+    public KieInstanceId(String containerId, Long instanceId) {
+        this.instanceId = instanceId;
+        this.containerId = containerId;
     }
 
     public String getContainerId() {

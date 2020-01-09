@@ -8,12 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.CommentNotFoundException;
+import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Comment;
 import org.entando.plugins.pda.core.request.CreateCommentRequest;
 import org.entando.plugins.pda.core.service.task.TaskCommentService;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieInstanceId;
+import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.api.model.instance.TaskComment;
 import org.kie.server.client.UserTaskServicesClient;
@@ -32,10 +33,20 @@ public class KieTaskCommentService implements TaskCommentService {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 
-        return client.getTaskCommentsByTaskId(taskId.getContainerId(), taskId.getInstanceId())
-                .stream()
-                .map(KieTaskCommentService::dtoToComment)
-                .collect(Collectors.toList());
+        try {
+            return client.getTaskCommentsByTaskId(taskId.getContainerId(), taskId.getInstanceId())
+                    .stream()
+                    .map(KieTaskCommentService::dtoToComment)
+                    .collect(Collectors.toList());
+        } catch (KieServicesHttpException e) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
+                    //Some endpoints return 500 instead of 404
+                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+                throw new TaskNotFoundException(e);
+            }
+
+            throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
+        }
     }
 
     @Override
@@ -79,6 +90,12 @@ public class KieTaskCommentService implements TaskCommentService {
                     .createdBy(createdBy)
                     .build();
         } catch (KieServicesHttpException e) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
+                    //Some endpoints return 500 instead of 404
+                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+                throw new TaskNotFoundException(e);
+            }
+
             throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
         }
     }

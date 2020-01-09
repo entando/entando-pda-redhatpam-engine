@@ -8,7 +8,7 @@ import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.service.group.GroupService;
 import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.process.model.KieDefinitionId;
+import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.kie.server.api.model.definition.AssociatedEntitiesDefinition;
 import org.kie.server.client.ProcessServicesClient;
 import org.springframework.stereotype.Service;
