@@ -77,7 +77,7 @@ public class KieTaskServiceTest {
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,
-                request.getPage() - 1, request.getPageSize(),
+                request.getPage(), request.getPageSize(),
                 PagedListRequest.SORT_VALUE_DEFAULT, PagedListRequest.DIRECTION_VALUE_DEFAULT);
     }
 
@@ -181,7 +181,7 @@ public class KieTaskServiceTest {
         PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
         // Then
-        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, request.getPage() - 1,
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, request.getPage(),
                 request.getPageSize(), PagedListRequest.SORT_VALUE_DEFAULT, PagedListRequest.DIRECTION_VALUE_DEFAULT);
     }
 
@@ -282,7 +282,7 @@ public class KieTaskServiceTest {
                 .findTasksAssignedAsPotentialOwner(
                         username == null ? anyString() : eq(username),
                         anyList(), anyList(),
-                        page == null ? anyInt() : eq(page),
+                        page == null ? anyInt() : eq(page - 1),
                         pageSize == null ? anyInt() : eq(pageSize),
                         sort == null ? anyString() : eq(KieTask.SORT_PROPERTIES.get(sort)),
                         direction == null ? anyBoolean() : eq(!Filter.DESC_ORDER.equals(direction)));
