@@ -39,9 +39,9 @@ public class KieTaskCommentService implements TaskCommentService {
                     .map(KieTaskCommentService::dtoToComment)
                     .collect(Collectors.toList());
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())/*
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
                     //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())*/) {
+                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
                 throw new TaskNotFoundException(e);
             }
 
