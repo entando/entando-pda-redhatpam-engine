@@ -52,7 +52,7 @@ public class KieTaskDetails extends KieTask {
     }
 
     public static KieTaskDetails from(TaskInstance kieTask) {
-        return KieTaskDetails.detailsBuilder()
+        return detailsBuilder()
                 .id(kieTask.getId())
                 .containerId(kieTask.getContainerId())
                 .name(kieTask.getName())
