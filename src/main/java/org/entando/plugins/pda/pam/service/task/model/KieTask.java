@@ -4,7 +4,6 @@ import static org.entando.plugins.pda.pam.service.task.util.TaskUtil.flatPropert
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +39,7 @@ public class KieTask extends Task {
     public static final String KIE_STATUS_OBSOLETE = "Obsolete";
 
     @Builder
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     public KieTask(Long id, String containerId, String name, String description, String createdBy, Date createdAt,
             Date dueTo, String status, String owner, Integer priority, String subject, Date activatedAt,
             Boolean skipable, Long processId, String processDefinitionId, Long parentId,
