@@ -22,7 +22,8 @@ public class KieTaskDefinitionServiceTest {
         Set<String> response = taskDefinitionService.listColumns();
 
         // Then
-        assertThat(response)
-                .containsAll(TASK_DEFINITION_COLUMNS);
+        assertThat(response).containsAll(TASK_DEFINITION_COLUMNS);
+        assertThat(response.size()).isEqualTo(TASK_DEFINITION_COLUMNS.size());
     }
+
 }

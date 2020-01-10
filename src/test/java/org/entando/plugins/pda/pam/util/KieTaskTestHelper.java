@@ -63,8 +63,7 @@ public class KieTaskTestHelper {
 
     public static final Set<String> TASK_DEFINITION_COLUMNS = Stream.of(
             "id", "name", "description", "createdBy", "createdAt", "dueTo", "status", "owner", "priority", "subject",
-            "type", "form", "activatedAt", "skipable", "workItemId", "processId", "slaCompliance", "slaDueTo",
-            "potentialOwners", "businessAdmins")
+            "activatedAt", "skipable", "processId", "processDefinitionId", "parentId")
             .collect(Collectors.toSet());
 
     public List<TaskSummary> createKieTaskList() {

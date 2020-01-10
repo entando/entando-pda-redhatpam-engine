@@ -21,13 +21,16 @@ public class TaskUtil {
     @SuppressWarnings("unchecked")
     public static Map<String, Object> flatProperties(Map<String, Object> data) {
         try {
-            String flatten = JsonFlattener.flatten(OBJECT_MAPPER.writeValueAsString(
-                    Optional.ofNullable(data).orElse(new HashMap<>())));
+            if (data == null || data.isEmpty()) {
+                return null;
+            }
+
+            String flatten = JsonFlattener.flatten(OBJECT_MAPPER.writeValueAsString(data));
             // remove type information
             return OBJECT_MAPPER.readValue(flatten.replaceAll("\\[.*?\\]", ""), Map.class);
         } catch (IOException e) {
             log.error("Error flattening properties", e);
-            return new HashMap<>();
+            return null;
         }
     }
 
