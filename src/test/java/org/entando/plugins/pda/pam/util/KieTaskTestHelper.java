@@ -92,19 +92,6 @@ public class KieTaskTestHelper {
         return result;
     }
 
-    public List<TaskSummary> createKieTaskListUser() {
-        List<TaskSummary> result = new ArrayList<>();
-        result.add(TaskSummary.builder()
-                .id(TASK_ID_2)
-                .name(TASK_NAME_2)
-                .status(KieTask.KIE_STATUS_RESERVED)
-                .processInstanceId(PROCESS_INSTANCE_ID_2)
-                .containerId(CONTAINER_ID_1)
-                .build());
-
-        return result;
-    }
-
     public TaskInstance generateKieTask() {
         return TaskInstance.builder()
                 .id(Long.valueOf(RandomStringUtils.randomNumeric(10)))
