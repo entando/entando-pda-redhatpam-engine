@@ -8,10 +8,10 @@ import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -66,17 +66,19 @@ public class KieTaskServiceTest {
     public void shouldListTasks() {
         // Given
         List<TaskSummary> expected = KieTaskTestHelper.createKieTaskList();
-        PagedListRequest request = new PagedListRequest(1, 10, "id", Filter.DESC_ORDER);
+        PagedListRequest request = new PagedListRequest();
         Connection connection = getDummyConnection();
         AuthenticatedUser user = null;
 
-        mockTaskList(anyString(), request.getPageSize(), expected);
+        mockTaskList(anyString(), expected);
 
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
         // Then
-        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,request.getPage() - 1, request.getPageSize());
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,
+                request.getPage(), request.getPageSize(),
+                PagedListRequest.SORT_VALUE_DEFAULT, PagedListRequest.DIRECTION_VALUE_DEFAULT);
     }
 
     @Test
@@ -88,7 +90,7 @@ public class KieTaskServiceTest {
         AuthenticatedUser user = null;
         String username = connection.getUsername();
 
-        mockTaskList(eq(username), request.getPageSize(), expected);
+        mockTaskList(eq(username), expected);
 
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
@@ -106,13 +108,13 @@ public class KieTaskServiceTest {
         AuthenticatedUser user = getDummyUser();
         String username = user.getAccessToken().getPreferredUsername();
 
-        mockTaskList(eq(username), request.getPageSize(), expected);
+        mockTaskList(eq(username), expected);
 
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
 
         // Then
-        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username, null, null);
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username);
     }
 
     @Test
@@ -123,7 +125,7 @@ public class KieTaskServiceTest {
         List<TaskSummary> firstPage = fullList.subList(0, 2);
         List<TaskSummary> lastPage = fullList.subList(2, 3);
 
-        mockTaskList(anyString(), request.getPageSize(), firstPage, lastPage);
+        mockTaskList(anyString(), firstPage, lastPage);
 
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
@@ -140,7 +142,7 @@ public class KieTaskServiceTest {
         List<TaskSummary> firstPage = KieTaskTestHelper.createKieTaskList().subList(0, 2);
         List<TaskSummary> lastPage = new ArrayList<>();
 
-        mockTaskList(anyString(), request.getPageSize(), firstPage, lastPage);
+        mockTaskList(anyString(), firstPage, lastPage);
 
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
@@ -156,13 +158,31 @@ public class KieTaskServiceTest {
         Connection connection = getDummyConnection();
         List<TaskSummary> lastPage = KieTaskTestHelper.createKieTaskList().subList(2, 3);
 
-        mockTaskList(anyString(), request.getPageSize(), lastPage);
+        mockTaskList(anyString(), lastPage);
 
         // When
         PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
 
         // Then
         verifyTaskListResult(response, 1, lastPage, KieTaskService.LAST_PAGE_TRUE);
+    }
+
+    @Test
+    public void shouldListTasksSortedUsingDefaultParamsWhenInvalidRequest() {
+        // Given
+        List<TaskSummary> expected = KieTaskTestHelper.createKieTaskList();
+        PagedListRequest request = new PagedListRequest(1, 10, "--INVALID--", "--INVALID--");
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = null;
+
+        mockTaskList(anyString(), expected);
+
+        // When
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
+
+        // Then
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, request.getPage(),
+                request.getPageSize(), PagedListRequest.SORT_VALUE_DEFAULT, PagedListRequest.DIRECTION_VALUE_DEFAULT);
     }
 
     @Test
@@ -230,9 +250,10 @@ public class KieTaskServiceTest {
     }
 
     @SafeVarargs
-    private final void mockTaskList(String username, Integer pageSize, List<TaskSummary>... pages) {
+    private final void mockTaskList(String username, List<TaskSummary>... pages) {
         OngoingStubbing<List<TaskSummary>> stub = when(
-                taskClient.findTasksAssignedAsPotentialOwner(username, isNull(), anyInt(), eq(pageSize)));
+                taskClient.findTasksAssignedAsPotentialOwner(username, anyList(), anyList(), anyInt(), anyInt(),
+                        anyString(), anyBoolean()));
 
         for (List<TaskSummary> taskSummaries : pages) {
             stub = stub.thenReturn(taskSummaries);
@@ -241,25 +262,30 @@ public class KieTaskServiceTest {
 
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
             int lastPage) {
-        verifyTaskListResult(response, calls, expected, lastPage, null, null, null);
+        verifyTaskListResult(response, calls, expected, lastPage, null, null, null, null, null);
     }
 
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
-            int lastPage, Integer page, Integer pageSize) {
-        verifyTaskListResult(response, calls, expected, lastPage, null, page, pageSize);
+            int lastPage, Integer page, Integer pageSize, String sort, String direction) {
+        verifyTaskListResult(response, calls, expected, lastPage, null, page, pageSize, sort, direction);
     }
 
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
             int lastPage, String username) {
-        verifyTaskListResult(response, calls, expected, lastPage, username, null, null);
+        verifyTaskListResult(response, calls, expected, lastPage, username, null, null, null, null);
     }
 
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
-            int lastPage, String username, Integer page, Integer pageSize) {
+            int lastPage, String username, Integer page, Integer pageSize, String sort, String direction) {
 
         verify(taskClient, times(calls))
-                .findTasksAssignedAsPotentialOwner(username == null ? anyString() : eq(username), isNull(),
-                        page == null ? anyInt() : eq(page), pageSize == null ? anyInt() : eq(pageSize));
+                .findTasksAssignedAsPotentialOwner(
+                        username == null ? anyString() : eq(username),
+                        anyList(), anyList(),
+                        page == null ? anyInt() : eq(page - 1),
+                        pageSize == null ? anyInt() : eq(pageSize),
+                        sort == null ? anyString() : eq(KieTask.SORT_PROPERTIES.get(sort)),
+                        direction == null ? anyBoolean() : eq(!Filter.DESC_ORDER.equals(direction)));
 
         assertThat(response.getPayload()).isEqualTo(expected.stream()
                 .map(KieTask::from)
