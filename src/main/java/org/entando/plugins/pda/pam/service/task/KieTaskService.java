@@ -15,6 +15,7 @@ import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
+import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
@@ -94,7 +95,7 @@ public class KieTaskService implements TaskService {
             TaskInstance task = client.getTaskInstance(taskId.getContainerId(), taskId.getInstanceId(),
                     true, true, true);
 
-            return KieTask.from(task);
+            return KieTaskDetails.from(task);
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
                     //Some endpoints return 500 instead of 404

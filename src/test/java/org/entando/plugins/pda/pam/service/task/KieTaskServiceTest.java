@@ -27,6 +27,7 @@ import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
+import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
 import org.entando.web.request.Filter;
@@ -217,7 +218,7 @@ public class KieTaskServiceTest {
                 .getTaskInstance(eq(taskId.getContainerId()), eq(taskId.getInstanceId()), eq(true),
                         eq(true), eq(true));
 
-        assertThat(task).isEqualTo(KieTask.from(expected));
+        assertThat(task).isEqualTo(KieTaskDetails.from(expected));
 
         assertThat(task.getInputData().get(KieTaskTestHelper.EXTRA_VARS_ATTRIBUTE_1))
                 .isEqualTo(KieTaskTestHelper.EXTRA_VARS_VALUE_1);

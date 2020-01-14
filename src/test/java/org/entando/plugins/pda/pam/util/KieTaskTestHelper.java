@@ -63,8 +63,7 @@ public class KieTaskTestHelper {
 
     public static final Set<String> TASK_DEFINITION_COLUMNS = Stream.of(
             "id", "name", "description", "createdBy", "createdAt", "dueTo", "status", "owner", "priority", "subject",
-            "type", "form", "activatedAt", "skipable", "workItemId", "processId", "slaCompliance", "slaDueTo",
-            "potentialOwners", "businessAdmins")
+            "activatedAt", "skipable", "processId", "processDefinitionId", "parentId")
             .collect(Collectors.toSet());
 
     public List<TaskSummary> createKieTaskList() {
@@ -90,19 +89,6 @@ public class KieTaskTestHelper {
                 .processInstanceId(PROCESS_INSTANCE_ID_2)
                 .containerId(CONTAINER_ID_2)
                 .build());
-        return result;
-    }
-
-    public List<TaskSummary> createKieTaskListUser() {
-        List<TaskSummary> result = new ArrayList<>();
-        result.add(TaskSummary.builder()
-                .id(TASK_ID_2)
-                .name(TASK_NAME_2)
-                .status(KieTask.KIE_STATUS_RESERVED)
-                .processInstanceId(PROCESS_INSTANCE_ID_2)
-                .containerId(CONTAINER_ID_1)
-                .build());
-
         return result;
     }
 
