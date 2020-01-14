@@ -5,6 +5,7 @@ import static org.entando.plugins.pda.pam.service.task.util.TaskUtil.flatPropert
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,6 +38,26 @@ public class KieTask extends Task {
     public static final String KIE_STATUS_FAILED = "Failed";
     public static final String KIE_STATUS_ERROR = "Error";
     public static final String KIE_STATUS_OBSOLETE = "Obsolete";
+
+    public static final Map<String, String> SORT_PROPERTIES = new ConcurrentHashMap<>();
+
+    static {
+        SORT_PROPERTIES.put("id", "t.id");
+        SORT_PROPERTIES.put("name", "t.name");
+        SORT_PROPERTIES.put("subject", "t.subject");
+        SORT_PROPERTIES.put("description", "t.description");
+        SORT_PROPERTIES.put("priority", "t.priority");
+        SORT_PROPERTIES.put("status", "t.taskData.status");
+        SORT_PROPERTIES.put("owner", "t.taskData.actualOwner.id");
+        SORT_PROPERTIES.put("createdBy", "t.taskData.createdBy.id");
+        SORT_PROPERTIES.put("createdAt", "t.taskData.createdOn");
+        SORT_PROPERTIES.put("activatedAt", "t.taskData.activationTime");
+        SORT_PROPERTIES.put("dueTo", "t.taskData.expirationTime");
+        SORT_PROPERTIES.put("processDefinition", "t.taskData.processId");
+        SORT_PROPERTIES.put("processId", "t.taskData.processInstanceId");
+        SORT_PROPERTIES.put("parentId", "t.taskData.parentId");
+        SORT_PROPERTIES.put("skipable", "t.taskData.skipable");
+    }
 
     @Builder
     @SuppressWarnings("PMD.ExcessiveParameterList")
