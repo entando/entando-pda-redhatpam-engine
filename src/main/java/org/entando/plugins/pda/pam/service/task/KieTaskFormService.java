@@ -72,7 +72,7 @@ public class KieTaskFormService implements TaskFormService {
         Map<String, Object> variables = new ConcurrentHashMap<>();
         Optional.ofNullable(request.getForms())
                 .orElseThrow(BadRequestException::new)
-                .forEach((key, value) -> value.forEach(variables::put));
+                .values().forEach(variables::putAll);
 
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
 
