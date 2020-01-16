@@ -23,16 +23,28 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RequestsSummaryType implements SummaryType {
 
+    public static final String PDA_TOTAL_PREFIX = "pda-total-";
+    public static final String PDA_PERC_DAYS_PREFIX = "pda-perc-days-";
+    public static final String PDA_PERC_MONTHS_PREFIX = "pda-perc-months-";
+    public static final String PDA_PERC_YEARS_PREFIX = "pda-perc-years-";
+    public static final String KIE_SERVER_PERSISTENCE_DS = "${org.kie.server.persistence.ds}";
+    public static final String CUSTOM_TARGET = "CUSTOM";
+
     private final KieApiService kieApiService;
 
     @Override
     public Summary calculateSummary(Connection connection, FrequencyEnum frequency) {
         String totalQuery = "SELECT min(startdate) as first_date, max(startdate) as end_date, count(*) as total\n"
                 + "FROM processinstanceinfo\n";
-        String total = String.valueOf(getTotal(connection, frequency, totalQuery));
+        QueryServicesClient queryClient = kieApiService.getQueryServicesClient(connection);
+        String total = String.valueOf(getTotal(queryClient, frequency, totalQuery));
         double percentage = 0.0;
         if (frequency.equals(FrequencyEnum.DAILY)) {
-            percentage = getPercentageDays(connection);
+            percentage = getPercentageDays(queryClient);
+        } else if (frequency.equals(FrequencyEnum.MONTHLY)) {
+            percentage = getPercentageMonths(queryClient);
+        } else if (frequency.equals(FrequencyEnum.ANNUALLY)) {
+            percentage = getPercentageYears(queryClient);
         }
         return Summary.builder()
                 .title(getDescription())
@@ -57,13 +69,12 @@ public class RequestsSummaryType implements SummaryType {
         return "Requests";
     }
 
-    private double getTotal(Connection connection, FrequencyEnum frequency, String query) {
-        QueryServicesClient queryClient = kieApiService.getQueryServicesClient(connection);
-        String queryName = "pda-total-" + getId();
+    private double getTotal(QueryServicesClient queryClient, FrequencyEnum frequency, String query) {
+        String queryName = PDA_TOTAL_PREFIX + getId();
         QueryDefinition queryDefinition = QueryDefinition.builder()
                 .name(queryName)
-                .source("${org.kie.server.persistence.ds}")
-                .expression(query).target("CUSTOM")
+                .source(KIE_SERVER_PERSISTENCE_DS)
+                .expression(query).target(CUSTOM_TARGET)
                 .build();
         queryClient.replaceQuery(queryDefinition);
 
@@ -89,19 +100,21 @@ public class RequestsSummaryType implements SummaryType {
         return 0.0;
     }
 
-    private double getPercentageDays(Connection connection) {
-        QueryServicesClient queryClient = kieApiService.getQueryServicesClient(connection);
-        String queryName = "pda-perc-days-" + getId();
+    private double getPercentageDays(QueryServicesClient queryClient) {
+        String queryName = PDA_PERC_DAYS_PREFIX + getId();
         QueryDefinition queryDefinition = QueryDefinition.builder()
                 .name(queryName)
-                .source("${org.kie.server.persistence.ds}")
-                .expression(getQueryPercentageDays()).target("CUSTOM")
+                .source(KIE_SERVER_PERSISTENCE_DS)
+                .expression(getQueryPercentageDays()).target(CUSTOM_TARGET)
                 .build();
         queryClient.replaceQuery(queryDefinition);
 
         List<List> result = queryClient
                 .query(queryName, QueryServicesClient.QUERY_MAP_RAW, 0, -1, List.class);
 
+        if (result.isEmpty()) {
+            return 0.0;
+        }
         LocalDate lastDate = LocalDate
                 .of(((Double) result.get(0).get(2)).intValue(), ((Double) result.get(0).get(1)).intValue(),
                         ((Double) result.get(0).get(0)).intValue());
@@ -132,6 +145,94 @@ public class RequestsSummaryType implements SummaryType {
                 + "FROM processinstanceinfo\n"
                 + "GROUP BY day, month, year\n"
                 + "ORDER BY year DESC, month DESC, day DESC\n"
+                + "LIMIT 2\n";
+    }
+
+    private double getPercentageMonths(QueryServicesClient queryClient) {
+        String queryName = PDA_PERC_MONTHS_PREFIX + getId();
+        QueryDefinition queryDefinition = QueryDefinition.builder()
+                .name(queryName)
+                .source(KIE_SERVER_PERSISTENCE_DS)
+                .expression(getQueryPercentageMonths()).target(CUSTOM_TARGET)
+                .build();
+        queryClient.replaceQuery(queryDefinition);
+
+        List<List> result = queryClient
+                .query(queryName, QueryServicesClient.QUERY_MAP_RAW, 0, -1, List.class);
+
+        if (result.isEmpty()) {
+            return 0.0;
+        }
+        LocalDate lastDate = LocalDate
+                .of(((Double) result.get(0).get(1)).intValue(), ((Double) result.get(0).get(0)).intValue(), 1);
+        Double lastDateValue = (Double) result.get(0).get(2);
+        LocalDate beforeLastDate = LocalDate
+                .of(((Double) result.get(1).get(1)).intValue(), ((Double) result.get(1).get(0)).intValue(), 1);
+        Double beforeLastDateValue = (Double) result.get(1).get(2);
+        return calculatePercentageMonths(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
+    }
+
+    private double calculatePercentageMonths(LocalDate lastDate, Double lastDateValue, LocalDate beforeLastDate,
+            Double beforeLastDateValue) {
+        LocalDate thisMonth = LocalDate.now().withDayOfMonth(1);
+        if (thisMonth.compareTo(lastDate.withDayOfMonth(1)) > 0) {
+            if (thisMonth.minusMonths(1).compareTo(lastDate.withDayOfMonth(1)) == 0 && lastDateValue > 0) {
+                return -100;
+            }
+        } else if (thisMonth.compareTo(lastDate) == 0
+                && thisMonth.minusMonths(1).compareTo(beforeLastDate.withDayOfMonth(1)) == 0
+                && beforeLastDateValue > 0) {
+            return (lastDateValue - beforeLastDateValue) / Math.min(beforeLastDateValue, lastDateValue) * 100;
+        }
+        return 0;
+    }
+
+    private String getQueryPercentageMonths() {
+        return "SELECT month(startdate) as month, year(startdate) as year, count(*) as total FROM processinstanceinfo\n"
+                + "GROUP BY month, year\n"
+                + "ORDER BY year DESC, month DESC\n"
+                + "LIMIT 2\n";
+    }
+
+    private double getPercentageYears(QueryServicesClient queryClient) {
+        String queryName = PDA_PERC_YEARS_PREFIX + getId();
+        QueryDefinition queryDefinition = QueryDefinition.builder()
+                .name(queryName)
+                .source(KIE_SERVER_PERSISTENCE_DS)
+                .expression(getQueryPercentageYears()).target(CUSTOM_TARGET)
+                .build();
+        queryClient.replaceQuery(queryDefinition);
+
+        List<List> result = queryClient
+                .query(queryName, QueryServicesClient.QUERY_MAP_RAW, 0, -1, List.class);
+
+        if (result.isEmpty()) {
+            return 0.0;
+        }
+        int lastYear = ((Double) result.get(0).get(0)).intValue();
+        Double lastYearValue = (Double) result.get(0).get(1);
+        int beforeLastYear = ((Double) result.get(1).get(0)).intValue();
+        Double beforeLastYearValue = (Double) result.get(1).get(1);
+        return calculatePercentageYears(lastYear, lastYearValue, beforeLastYear, beforeLastYearValue);
+    }
+
+    private double calculatePercentageYears(int lastYear, Double lastYearValue, int beforeLastYear,
+            Double beforeLastYearValue) {
+        int thisYear = LocalDate.now().getYear();
+        if (thisYear > lastYear) {
+            if (thisYear - 1 == lastYear && lastYearValue > 0) {
+                return -100;
+            }
+        } else if (thisYear == lastYear && thisYear - 1 == beforeLastYear && beforeLastYearValue > 0) {
+            return (lastYearValue - beforeLastYearValue) / Math.min(beforeLastYearValue, lastYearValue) * 100;
+        }
+        return 0;
+    }
+
+    private String getQueryPercentageYears() {
+        return "SELECT year(startdate) as year, count(*) as total FROM processinstanceinfo\n"
+                + "GROUP BY year\n"
+                + "ORDER BY year DESC\n"
                 + "LIMIT 2\n";
     }
 }
