@@ -1,6 +1,7 @@
 package org.entando.plugins.pda.pam.summary;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockEmptyTotalResult;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockPercentageResultDays;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockTotalResult;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +47,7 @@ public class RequestsSummaryTypeDailyTest {
     @Test
     public void shouldCalculatePercentageForDailyFrequency() {
         // Given
-        mockTotalResult(requestsSummaryType, queryClient, LocalDate.of(2019, 1, 1), LocalDate.of(2019, 9, 1), 10_000.0);
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
         mockPercentageResultDays(requestsSummaryType, queryClient, LocalDate.now(), LocalDate.now().minusDays(1), 150,
                 100);
 

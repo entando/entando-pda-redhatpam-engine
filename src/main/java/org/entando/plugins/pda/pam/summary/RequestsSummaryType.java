@@ -29,6 +29,8 @@ public class RequestsSummaryType implements SummaryType {
     public static final String PDA_PERC_YEARS_PREFIX = "pda-perc-years-";
     public static final String KIE_SERVER_PERSISTENCE_DS = "${org.kie.server.persistence.ds}";
     public static final String CUSTOM_TARGET = "CUSTOM";
+    public static final String REQUESTS_TITLE = "REQUESTS.TITLE";
+    public static final String REQUESTS_TOTAL_LABEL = "REQUESTS.TOTAL_LABEL";
 
     private final KieApiService kieApiService;
 
@@ -48,7 +50,7 @@ public class RequestsSummaryType implements SummaryType {
         }
         return Summary.builder()
                 .title(getDescription())
-                .totalLabel("Total requests")
+                .totalLabel(REQUESTS_TOTAL_LABEL)
                 .total(total)
                 .percentage(percentage)
                 .build();
@@ -66,7 +68,7 @@ public class RequestsSummaryType implements SummaryType {
 
     @Override
     public String getDescription() {
-        return "Requests";
+        return REQUESTS_TITLE;
     }
 
     private double getTotal(QueryServicesClient queryClient, FrequencyEnum frequency, String query) {

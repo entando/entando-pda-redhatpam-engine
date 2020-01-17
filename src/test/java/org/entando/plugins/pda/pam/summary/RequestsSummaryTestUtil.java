@@ -32,6 +32,12 @@ public class RequestsSummaryTestUtil {
                 .thenReturn(resultTotal);
     }
 
+    public static void mockEmptyTotalResult(RequestsSummaryType requestsSummaryType, QueryServicesClient queryClient) {
+        when(queryClient
+                .query(eq(PDA_TOTAL_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
+    }
+
     public static void mockPercentageResultYears(RequestsSummaryType requestsSummaryType,
             QueryServicesClient queryClient, int last, int before, double lastValue, double beforeValue) {
         List<Object> resultPercentage = new ArrayList<>();
@@ -50,6 +56,13 @@ public class RequestsSummaryTestUtil {
         when(queryClient
                 .query(eq(PDA_PERC_MONTHS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
                 .thenReturn(resultPercentage);
+    }
+
+    public static void mockEmptyPercentageResultMonths(RequestsSummaryType requestsSummaryType,
+            QueryServicesClient queryClient) {
+        when(queryClient
+                .query(eq(PDA_PERC_MONTHS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
     }
 
     public static void mockPercentageResultDays(RequestsSummaryType requestsSummaryType,

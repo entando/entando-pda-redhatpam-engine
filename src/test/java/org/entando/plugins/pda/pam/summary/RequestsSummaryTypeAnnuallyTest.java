@@ -1,6 +1,7 @@
 package org.entando.plugins.pda.pam.summary;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockEmptyTotalResult;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockPercentageResultYears;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockTotalResult;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +46,7 @@ public class RequestsSummaryTypeAnnuallyTest {
 
     @Test
     public void shouldCalculatePercentageForAnnuallyFrequency() {
-        mockTotalResult(requestsSummaryType, queryClient, LocalDate.of(2016, 1, 1), LocalDate.of(2020, 1, 1), 10_000.0);
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
         mockPercentageResultYears(requestsSummaryType, queryClient, LocalDate.now().getYear(),
                 LocalDate.now().minusYears(1).getYear(), 75, 50);
 

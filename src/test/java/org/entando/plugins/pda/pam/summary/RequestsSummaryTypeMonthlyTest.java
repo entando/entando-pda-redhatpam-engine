@@ -1,6 +1,8 @@
 package org.entando.plugins.pda.pam.summary;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockEmptyPercentageResultMonths;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockEmptyTotalResult;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockPercentageResultMonths;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTestUtil.mockTotalResult;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +32,19 @@ public class RequestsSummaryTypeMonthlyTest {
     }
 
     @Test
+    public void shouldReturnConstantsForLabelValues() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockEmptyPercentageResultMonths(requestsSummaryType, queryClient);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.MONTHLY);
+
+        assertThat(summary.getTitle()).isEqualTo(RequestsSummaryType.REQUESTS_TITLE);
+        assertThat(summary.getTotalLabel()).isEqualTo(RequestsSummaryType.REQUESTS_TOTAL_LABEL);
+    }
+
+    @Test
     public void shouldCalculateTotalForMonthlyFrequency() {
         // Given
         mockTotalResult(requestsSummaryType, queryClient, LocalDate.of(2019, 1, 1), LocalDate.of(2019, 9, 1), 10_000.0);
@@ -45,7 +60,7 @@ public class RequestsSummaryTypeMonthlyTest {
 
     @Test
     public void shouldCalculatePercentageForMonthlyFrequency() {
-        mockTotalResult(requestsSummaryType, queryClient, LocalDate.of(2019, 1, 1), LocalDate.of(2019, 9, 1), 10_000.0);
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
         mockPercentageResultMonths(requestsSummaryType, queryClient, LocalDate.now(), LocalDate.now().minusMonths(1),
                 75, 50);
 
