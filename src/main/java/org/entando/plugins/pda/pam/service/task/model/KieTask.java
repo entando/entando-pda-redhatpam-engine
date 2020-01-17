@@ -4,8 +4,8 @@ import static org.entando.plugins.pda.pam.service.task.util.TaskUtil.flatPropert
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.pam.exception.KieInvalidTaskStatusException;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
-import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.api.model.instance.TaskSummary;
 
 @Data
@@ -24,19 +23,11 @@ import org.kie.server.api.model.instance.TaskSummary;
 public class KieTask extends Task {
     private Integer priority;
     private String subject;
-    private String type;
-    private String form;
     private Date activatedAt;
     private Boolean skipable;
-    private Long workItemId;
-    private Long processId;
     private String processDefinitionId;
+    private Long processId;
     private Long parentId;
-    private Integer slaCompliance;
-    private Date slaDueTo;
-    private List<String> potentialOwners;
-    private List<String> excludedOwners;
-    private List<String> businessAdmins;
 
     public static final String KIE_STATUS_CREATED = "Created";
     public static final String KIE_STATUS_READY = "Ready";
@@ -48,13 +39,31 @@ public class KieTask extends Task {
     public static final String KIE_STATUS_ERROR = "Error";
     public static final String KIE_STATUS_OBSOLETE = "Obsolete";
 
+    public static final Map<String, String> SORT_PROPERTIES = new ConcurrentHashMap<>();
+
+    static {
+        SORT_PROPERTIES.put("id", "t.id");
+        SORT_PROPERTIES.put("name", "t.name");
+        SORT_PROPERTIES.put("subject", "t.subject");
+        SORT_PROPERTIES.put("description", "t.description");
+        SORT_PROPERTIES.put("priority", "t.priority");
+        SORT_PROPERTIES.put("status", "t.taskData.status");
+        SORT_PROPERTIES.put("owner", "t.taskData.actualOwner.id");
+        SORT_PROPERTIES.put("createdBy", "t.taskData.createdBy.id");
+        SORT_PROPERTIES.put("createdAt", "t.taskData.createdOn");
+        SORT_PROPERTIES.put("activatedAt", "t.taskData.activationTime");
+        SORT_PROPERTIES.put("dueTo", "t.taskData.expirationTime");
+        SORT_PROPERTIES.put("processDefinition", "t.taskData.processId");
+        SORT_PROPERTIES.put("processId", "t.taskData.processInstanceId");
+        SORT_PROPERTIES.put("parentId", "t.taskData.parentId");
+        SORT_PROPERTIES.put("skipable", "t.taskData.skipable");
+    }
+
     @Builder
     @SuppressWarnings("PMD.ExcessiveParameterList")
-    public KieTask(Long id, String containerId, String name, String description, Date createdAt, String createdBy,
-            Date dueTo, String status, String owner, Integer priority, String subject, String type, String form,
-            Date activatedAt, Boolean skipable, Long workItemId, Long processId,
-            String processDefinitionId, Long parentId, Integer slaCompliance, Date slaDueTo,
-            List<String> potentialOwners, List<String> excludedOwners, List<String> businessAdmins,
+    public KieTask(Long id, String containerId, String name, String description, String createdBy, Date createdAt,
+            Date dueTo, String status, String owner, Integer priority, String subject, Date activatedAt,
+            Boolean skipable, Long processId, String processDefinitionId, Long parentId,
             Map<String, Object> inputData, Map<String, Object> outputData) {
 
         super(new KieInstanceId(containerId, id).toString(), name, description, createdBy, createdAt, dueTo,
@@ -62,50 +71,11 @@ public class KieTask extends Task {
 
         this.priority = priority;
         this.subject = subject;
-        this.type = type;
-        this.form = form;
         this.activatedAt = activatedAt == null ? null : new Date(activatedAt.getTime());
         this.skipable = skipable;
-        this.workItemId = workItemId;
         this.processId = processId;
         this.processDefinitionId = processDefinitionId;
         this.parentId = parentId;
-        this.slaCompliance = slaCompliance;
-        this.slaDueTo = slaDueTo == null ? null : new Date(slaDueTo.getTime());
-        this.potentialOwners = potentialOwners;
-        this.excludedOwners = excludedOwners;
-        this.businessAdmins = businessAdmins;
-    }
-
-    public static KieTask from(TaskInstance kieTask) {
-        return builder()
-                .id(kieTask.getId())
-                .containerId(kieTask.getContainerId())
-                .name(kieTask.getName())
-                .description(kieTask.getDescription())
-                .createdAt(kieTask.getCreatedOn())
-                .createdBy(kieTask.getCreatedBy())
-                .dueTo(kieTask.getExpirationDate())
-                .status(kieTask.getStatus())
-                .owner(kieTask.getActualOwner())
-                .priority(kieTask.getPriority())
-                .subject(kieTask.getSubject())
-                .type(kieTask.getTaskType())
-                .form(kieTask.getFormName())
-                .activatedAt(kieTask.getActivationTime())
-                .skipable(kieTask.getSkipable())
-                .workItemId(kieTask.getWorkItemId())
-                .processId(kieTask.getProcessInstanceId())
-                .processDefinitionId(kieTask.getProcessId())
-                .parentId(kieTask.getParentId())
-                .slaDueTo(kieTask.getSlaDueDate())
-                .slaCompliance(kieTask.getSlaCompliance())
-                .potentialOwners(kieTask.getPotentialOwners())
-                .excludedOwners(kieTask.getExcludedOwners())
-                .businessAdmins(kieTask.getBusinessAdmins())
-                .inputData(kieTask.getInputData())
-                .outputData(kieTask.getOutputData())
-                .build();
     }
 
     public static KieTask from(TaskSummary kieTask) {
@@ -137,16 +107,8 @@ public class KieTask extends Task {
         this.activatedAt = activatedAt == null ? null : new Date(activatedAt.getTime());
     }
 
-    public Date getSlaDueTo() {
-        return slaDueTo == null ? null : new Date(slaDueTo.getTime());
-    }
-
-    public void setSlaDueTo(Date slaDueTo) {
-        this.slaDueTo = slaDueTo == null ? null : new Date(slaDueTo.getTime());
-    }
-
     @SuppressWarnings("PMD.CyclomaticComplexity")
-    private static Task.Status convertKieTaskStatus(String status) {
+    private static Status convertKieTaskStatus(String status) {
         switch (status) {
             case KIE_STATUS_CREATED:
             case KIE_STATUS_READY:

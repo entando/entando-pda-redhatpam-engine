@@ -5,24 +5,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
+import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
+import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.model.form.Form;
+import org.entando.plugins.pda.core.model.task.CreateTaskFormSubmissionRequest;
 import org.entando.plugins.pda.core.service.task.TaskFormService;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.KieFormDeserializer;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
+import org.entando.web.exception.BadRequestException;
 import org.entando.web.exception.InternalServerException;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.client.UIServicesClient;
+import org.kie.server.client.UserTaskServicesClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class KieTaskFormService implements TaskFormService {
+
+    private final KieTaskService taskService;
 
     private final KieApiService kieApiService;
 
@@ -35,15 +45,13 @@ public class KieTaskFormService implements TaskFormService {
     }
 
     @Override
-    public List<Form> getTaskForm(Connection connection, String id) {
+    public List<Form> get(Connection connection, String id) {
         KieInstanceId taskId = new KieInstanceId(id);
 
-        UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
+        UIServicesClient client = kieApiService.getUiServicesClient(connection);
 
         try {
-            String json = uiServicesClient
-                    .getTaskForm(taskId.getContainerId(), taskId.getInstanceId());
-
+            String json = client.getTaskForm(taskId.getContainerId(), taskId.getInstanceId());
             return MAPPER.readValue(json, new TypeReference<List<Form>>() {});
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
@@ -52,6 +60,33 @@ public class KieTaskFormService implements TaskFormService {
             throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
         } catch (IOException e) {
             throw new InternalServerException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Task submit(Connection connection, AuthenticatedUser user, String id,
+            CreateTaskFormSubmissionRequest request) {
+
+        KieInstanceId taskId = new KieInstanceId(id);
+
+        Map<String, Object> variables = new ConcurrentHashMap<>();
+        Optional.ofNullable(request.getForms())
+                .orElseThrow(BadRequestException::new)
+                .values().forEach(variables::putAll);
+
+        UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
+
+        try {
+            client.saveTaskContent(taskId.getContainerId(), taskId.getInstanceId(), variables);
+            return taskService.get(connection, user, id);
+        } catch (KieServicesHttpException e) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
+                    //Some endpoints return 500 instead of 404
+                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+                throw new TaskNotFoundException(e);
+            }
+
+            throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
         }
     }
 }

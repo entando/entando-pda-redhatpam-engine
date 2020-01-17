@@ -13,6 +13,7 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang.RandomStringUtils;
 import org.entando.plugins.pda.core.model.Comment;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
+import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.api.model.instance.TaskSummary;
 
@@ -63,8 +64,7 @@ public class KieTaskTestHelper {
 
     public static final Set<String> TASK_DEFINITION_COLUMNS = Stream.of(
             "id", "name", "description", "createdBy", "createdAt", "dueTo", "status", "owner", "priority", "subject",
-            "type", "form", "activatedAt", "skipable", "workItemId", "processId", "slaCompliance", "slaDueTo",
-            "potentialOwners", "businessAdmins")
+            "activatedAt", "skipable", "processId", "processDefinitionId", "parentId")
             .collect(Collectors.toSet());
 
     public List<TaskSummary> createKieTaskList() {
@@ -93,27 +93,19 @@ public class KieTaskTestHelper {
         return result;
     }
 
-    public List<TaskSummary> createKieTaskListUser() {
-        List<TaskSummary> result = new ArrayList<>();
-        result.add(TaskSummary.builder()
-                .id(TASK_ID_2)
-                .name(TASK_NAME_2)
-                .status(KieTask.KIE_STATUS_RESERVED)
-                .processInstanceId(PROCESS_INSTANCE_ID_2)
-                .containerId(CONTAINER_ID_1)
-                .build());
-
-        return result;
+    public TaskInstance generateKieTask() {
+        return generateKieTask(new KieInstanceId(
+                RandomStringUtils.randomAlphabetic(10),
+                Long.valueOf(RandomStringUtils.randomNumeric(10))));
     }
 
-    public TaskInstance generateKieTask() {
+    public TaskInstance generateKieTask(KieInstanceId id) {
         return TaskInstance.builder()
-                .id(Long.valueOf(RandomStringUtils.randomNumeric(10)))
-                .containerId(RandomStringUtils.randomAlphabetic(10))
+                .id(id.getInstanceId())
+                .containerId(id.getContainerId())
                 .status(KieTask.KIE_STATUS_RESERVED)
                 .name(RandomStringUtils.randomAlphabetic(20))
                 .processInstanceId(Long.valueOf(RandomStringUtils.randomNumeric(10)))
-                .containerId(RandomStringUtils.randomNumeric(10))
                 .inputData(ImmutableMap.of(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1,
                         EXTRA_VARS_ATTRIBUTE_2, EXTRA_VARS_COMPLEX_VALUE_2))
                 .outputData(ImmutableMap.of(EXTRA_VARS_ATTRIBUTE_1, EXTRA_VARS_VALUE_1,

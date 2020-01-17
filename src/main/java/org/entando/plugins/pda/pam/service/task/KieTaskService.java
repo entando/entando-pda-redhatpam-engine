@@ -1,6 +1,8 @@
 package org.entando.plugins.pda.pam.service.task;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,9 @@ import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
+import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
+import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 import org.entando.web.response.PagedMetadata;
 import org.entando.web.response.PagedRestResponse;
@@ -51,7 +55,9 @@ public class KieTaskService implements TaskService {
         }
 
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
-        return client.findTasksAssignedAsPotentialOwner(username, null,request.getPage() - 1, request.getPageSize())
+        return client.findTasksAssignedAsPotentialOwner(username, new ArrayList<>(), new ArrayList<>(),
+                request.getPage() - 1, request.getPageSize(),
+                convertSortProperty(request.getSort()), !request.getDirection().equals(Filter.DESC_ORDER))
                 .stream()
                 .map(KieTask::from)
                 .collect(Collectors.toList());
@@ -75,6 +81,11 @@ public class KieTaskService implements TaskService {
         return pagedMetadata.toRestResponse();
     }
 
+    private String convertSortProperty(String sort) {
+        return Optional.ofNullable(KieTask.SORT_PROPERTIES.get(sort))
+                .orElse(KieTask.SORT_PROPERTIES.get(PagedListRequest.SORT_VALUE_DEFAULT));
+    }
+
     @Override
     public Task get(Connection connection, AuthenticatedUser user, String id) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
@@ -84,7 +95,7 @@ public class KieTaskService implements TaskService {
             TaskInstance task = client.getTaskInstance(taskId.getContainerId(), taskId.getInstanceId(),
                     true, true, true);
 
-            return KieTask.from(task);
+            return KieTaskDetails.from(task);
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
                     //Some endpoints return 500 instead of 404

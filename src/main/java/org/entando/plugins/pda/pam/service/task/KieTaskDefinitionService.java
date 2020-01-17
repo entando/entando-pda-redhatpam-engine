@@ -16,7 +16,11 @@ public class KieTaskDefinitionService implements TaskDefinitionService {
 
     @Override
     public Set<String> listColumns() {
-        return extractKeys(new KieTask());
+        Set<String> columns = extractKeys(new KieTask());
+        columns.remove("inputData");
+        columns.remove("outputData");
+
+        return columns;
     }
 
 }
