@@ -1,8 +1,9 @@
 package org.entando.plugins.pda.pam.summary;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.MONTHS;
-import static java.time.temporal.ChronoUnit.YEARS;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageDays;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageMonths;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageYears;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculateTotal;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -82,24 +83,15 @@ public class RequestsSummaryType implements SummaryType {
 
         List<List> result = queryClient
                 .query(queryName, QueryServicesClient.QUERY_MAP_RAW, 0, -1, List.class);
-        if (!result.isEmpty()) {
-            LocalDate firstDate = new Date((Long) result.get(0).get(0)).toInstant().atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-            LocalDate lastDate = new Date((Long) result.get(0).get(1)).toInstant().atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-            Double totalRecords = (Double) result.get(0).get(2);
-            if (frequency.equals(FrequencyEnum.DAILY)) {
-                long days = DAYS.between(firstDate, lastDate);
-                return days > 0 ? totalRecords / days : totalRecords;
-            } else if (frequency.equals(FrequencyEnum.MONTHLY)) {
-                long months = MONTHS.between(firstDate, lastDate);
-                return months > 0 ? totalRecords / months : totalRecords;
-            } else if (frequency.equals(FrequencyEnum.ANNUALLY)) {
-                long years = YEARS.between(firstDate, lastDate);
-                return years > 0 ? totalRecords / years : totalRecords;
-            }
+        if (result.isEmpty()) {
+            return 0.0;
         }
-        return 0.0;
+        LocalDate firstDate = new Date((Long) result.get(0).get(0)).toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        LocalDate lastDate = new Date((Long) result.get(0).get(1)).toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        Double totalRecords = (Double) result.get(0).get(2);
+        return calculateTotal(frequency, firstDate, lastDate, totalRecords);
     }
 
     private double getPercentageDays(QueryServicesClient queryClient) {
@@ -126,20 +118,6 @@ public class RequestsSummaryType implements SummaryType {
                         ((Double) result.get(1).get(0)).intValue());
         Double beforeLastDateValue = (Double) result.get(1).get(3);
         return calculatePercentageDays(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
-    }
-
-    private double calculatePercentageDays(LocalDate lastDate, Double lastDateValue, LocalDate beforeLastDate,
-            Double beforeLastDateValue) {
-        LocalDate today = LocalDate.now();
-        if (today.compareTo(lastDate) > 0) {
-            if (today.minusDays(1).compareTo(lastDate) == 0 && lastDateValue > 0) {
-                return -100;
-            }
-        } else if (today.compareTo(lastDate) == 0 && today.minusDays(1).compareTo(beforeLastDate) == 0
-                && beforeLastDateValue > 0) {
-            return (lastDateValue - beforeLastDateValue) / Math.min(beforeLastDateValue, lastDateValue) * 100;
-        }
-        return 0;
     }
 
     private String getQueryPercentageDays() {
@@ -174,21 +152,6 @@ public class RequestsSummaryType implements SummaryType {
         return calculatePercentageMonths(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
     }
 
-    private double calculatePercentageMonths(LocalDate lastDate, Double lastDateValue, LocalDate beforeLastDate,
-            Double beforeLastDateValue) {
-        LocalDate thisMonth = LocalDate.now().withDayOfMonth(1);
-        if (thisMonth.compareTo(lastDate.withDayOfMonth(1)) > 0) {
-            if (thisMonth.minusMonths(1).compareTo(lastDate.withDayOfMonth(1)) == 0 && lastDateValue > 0) {
-                return -100;
-            }
-        } else if (thisMonth.compareTo(lastDate) == 0
-                && thisMonth.minusMonths(1).compareTo(beforeLastDate.withDayOfMonth(1)) == 0
-                && beforeLastDateValue > 0) {
-            return (lastDateValue - beforeLastDateValue) / Math.min(beforeLastDateValue, lastDateValue) * 100;
-        }
-        return 0;
-    }
-
     private String getQueryPercentageMonths() {
         return "SELECT month(startdate) as month, year(startdate) as year, count(*) as total FROM processinstanceinfo\n"
                 + "GROUP BY month, year\n"
@@ -216,19 +179,6 @@ public class RequestsSummaryType implements SummaryType {
         int beforeLastYear = ((Double) result.get(1).get(0)).intValue();
         Double beforeLastYearValue = (Double) result.get(1).get(1);
         return calculatePercentageYears(lastYear, lastYearValue, beforeLastYear, beforeLastYearValue);
-    }
-
-    private double calculatePercentageYears(int lastYear, Double lastYearValue, int beforeLastYear,
-            Double beforeLastYearValue) {
-        int thisYear = LocalDate.now().getYear();
-        if (thisYear > lastYear) {
-            if (thisYear - 1 == lastYear && lastYearValue > 0) {
-                return -100;
-            }
-        } else if (thisYear == lastYear && thisYear - 1 == beforeLastYear && beforeLastYearValue > 0) {
-            return (lastYearValue - beforeLastYearValue) / Math.min(beforeLastYearValue, lastYearValue) * 100;
-        }
-        return 0;
     }
 
     private String getQueryPercentageYears() {

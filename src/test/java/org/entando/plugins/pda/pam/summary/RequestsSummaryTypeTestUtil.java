@@ -19,7 +19,7 @@ import lombok.experimental.UtilityClass;
 import org.kie.server.client.QueryServicesClient;
 
 @UtilityClass
-public class RequestsSummaryTestUtil {
+public class RequestsSummaryTypeTestUtil {
 
     public static void mockTotalResult(RequestsSummaryType requestsSummaryType, QueryServicesClient queryClient,
             LocalDate first, LocalDate last, double total) {
@@ -46,6 +46,13 @@ public class RequestsSummaryTestUtil {
         when(queryClient
                 .query(eq(PDA_PERC_YEARS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
                 .thenReturn(resultPercentage);
+    }
+
+    public static void mockEmptyPercentageResultYears(RequestsSummaryType requestsSummaryType,
+            QueryServicesClient queryClient) {
+        when(queryClient
+                .query(eq(PDA_PERC_YEARS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
     }
 
     public static void mockPercentageResultMonths(RequestsSummaryType requestsSummaryType,
@@ -77,5 +84,12 @@ public class RequestsSummaryTestUtil {
         when(queryClient
                 .query(eq(PDA_PERC_DAYS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
                 .thenReturn(resultPercentage);
+    }
+
+    public static void mockEmptyPercentageResultDays(RequestsSummaryType requestsSummaryType,
+            QueryServicesClient queryClient) {
+        when(queryClient
+                .query(eq(PDA_PERC_DAYS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
     }
 }
