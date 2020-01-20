@@ -60,7 +60,7 @@ public class RequestsSummaryTypeTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat((int) Double.parseDouble(summary.getTotal())).isEqualTo(41);
+        assertThat(summary.getTotal()).isEqualTo("41.15");
     }
 
     @Test
@@ -74,7 +74,7 @@ public class RequestsSummaryTypeTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.MONTHLY);
 
         // Then
-        assertThat(summary.getTotal()).isEqualTo("1250.0");
+        assertThat(summary.getTotal()).isEqualTo("1250");
     }
 
     @Test
@@ -88,6 +88,6 @@ public class RequestsSummaryTypeTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getTotal()).isEqualTo("2500.0");
+        assertThat(summary.getTotal()).isEqualTo("2500");
     }
 }

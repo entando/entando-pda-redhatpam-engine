@@ -41,7 +41,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(50.0);
+        assertThat(summary.getPercentage()).isEqualTo("50");
     }
 
     @Test
@@ -55,7 +55,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(-50.0);
+        assertThat(summary.getPercentage()).isEqualTo("-50");
     }
 
     @Test
@@ -68,7 +68,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(0.0);
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 
     @Test
@@ -82,7 +82,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(100.0);
+        assertThat(summary.getPercentage()).isEqualTo("100");
     }
 
     @Test
@@ -96,7 +96,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(-100.0);
+        assertThat(summary.getPercentage()).isEqualTo("-100");
     }
 
     @Test
@@ -110,7 +110,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(-100.0);
+        assertThat(summary.getPercentage()).isEqualTo("-100");
     }
 
     @Test
@@ -124,7 +124,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(0.0);
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 
     @Test
@@ -137,7 +137,7 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(0.0);
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 
     @Test
@@ -151,6 +151,6 @@ public class RequestsSummaryTypeDailyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(100.0);
+        assertThat(summary.getPercentage()).isEqualTo("100");
     }
 }

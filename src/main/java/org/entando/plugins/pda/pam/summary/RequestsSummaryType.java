@@ -5,6 +5,7 @@ import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePerce
 import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageYears;
 import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculateTotal;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -35,12 +36,14 @@ public class RequestsSummaryType implements SummaryType {
 
     private final KieApiService kieApiService;
 
+    private DecimalFormat decimalFormat = new DecimalFormat("#.##");
+
     @Override
     public Summary calculateSummary(Connection connection, FrequencyEnum frequency) {
         String totalQuery = "SELECT min(startdate) as first_date, max(startdate) as end_date, count(*) as total\n"
                 + "FROM processinstanceinfo\n";
         QueryServicesClient queryClient = kieApiService.getQueryServicesClient(connection);
-        String total = String.valueOf(getTotal(queryClient, frequency, totalQuery));
+        double total = getTotal(queryClient, frequency, totalQuery);
         double percentage = 0.0;
         if (frequency.equals(FrequencyEnum.DAILY)) {
             percentage = getPercentageDays(queryClient);
@@ -52,8 +55,8 @@ public class RequestsSummaryType implements SummaryType {
         return Summary.builder()
                 .title(getDescription())
                 .totalLabel(REQUESTS_TOTAL_LABEL)
-                .total(total)
-                .percentage(percentage)
+                .total(decimalFormat.format(total))
+                .percentage(decimalFormat.format(percentage))
                 .build();
     }
 

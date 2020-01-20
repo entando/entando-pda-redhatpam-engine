@@ -40,7 +40,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(50.0);
+        assertThat(summary.getPercentage()).isEqualTo("50");
     }
 
     @Test
@@ -54,7 +54,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(-50.0);
+        assertThat(summary.getPercentage()).isEqualTo("-50");
     }
 
     @Test
@@ -67,7 +67,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(0.0);
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 
     @Test
@@ -81,7 +81,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(100.0);
+        assertThat(summary.getPercentage()).isEqualTo("100");
     }
 
     @Test
@@ -95,7 +95,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(-100.0);
+        assertThat(summary.getPercentage()).isEqualTo("-100");
     }
 
     @Test
@@ -109,7 +109,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(-100.0);
+        assertThat(summary.getPercentage()).isEqualTo("-100");
     }
 
     @Test
@@ -123,7 +123,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(0.0);
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 
     @Test
@@ -137,7 +137,7 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(0.0);
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 
     @Test
@@ -151,6 +151,6 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
         Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
 
         // Then
-        assertThat(summary.getPercentage()).isEqualTo(100.0);
+        assertThat(summary.getPercentage()).isEqualTo("100");
     }
 }
