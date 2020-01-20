@@ -3,6 +3,7 @@ package org.entando.plugins.pda.pam.summary;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockEmptyPercentageResultYears;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockEmptyTotalResult;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockIncompletePercentageResultYears;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockPercentageResultYears;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.client.QueryServicesClient;
 
+@SuppressWarnings("PMD.TooManyMethods")
 public class RequestsSummaryTypeAnnuallyPercentageTest {
 
     private RequestsSummaryType requestsSummaryType;
@@ -152,5 +154,45 @@ public class RequestsSummaryTypeAnnuallyPercentageTest {
 
         // Then
         assertThat(summary.getPercentage()).isEqualTo("100");
+    }
+
+    @Test
+    public void shouldHave100PercentWhenThisYearHasValueAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultYears(requestsSummaryType, queryClient, LocalDate.now().getYear(), 10);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("100");
+    }
+
+    @Test
+    public void shouldHave100PercentDecreaseWhenLastYearHasValueAndAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultYears(requestsSummaryType, queryClient, LocalDate.now().minusYears(1).getYear(),
+                10);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("-100");
+    }
+
+    @Test
+    public void shouldHaveZeroPercentWhenThisYearHasZeroValueAndAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultYears(requestsSummaryType, queryClient, LocalDate.now().getYear(), 0);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.ANNUALLY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 }

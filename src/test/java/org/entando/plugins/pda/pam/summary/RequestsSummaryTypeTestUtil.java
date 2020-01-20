@@ -19,6 +19,7 @@ import lombok.experimental.UtilityClass;
 import org.kie.server.client.QueryServicesClient;
 
 @UtilityClass
+@SuppressWarnings("PMD.TooManyMethods")
 public class RequestsSummaryTypeTestUtil {
 
     public static void mockTotalResult(RequestsSummaryType requestsSummaryType, QueryServicesClient queryClient,
@@ -48,6 +49,15 @@ public class RequestsSummaryTypeTestUtil {
                 .thenReturn(resultPercentage);
     }
 
+    public static void mockIncompletePercentageResultYears(RequestsSummaryType requestsSummaryType,
+            QueryServicesClient queryClient, int last, double lastValue) {
+        List<Object> resultPercentage = new ArrayList<>();
+        resultPercentage.add(Arrays.asList((double) last, lastValue));
+        when(queryClient
+                .query(eq(PDA_PERC_YEARS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(resultPercentage);
+    }
+
     public static void mockEmptyPercentageResultYears(RequestsSummaryType requestsSummaryType,
             QueryServicesClient queryClient) {
         when(queryClient
@@ -60,6 +70,15 @@ public class RequestsSummaryTypeTestUtil {
         List<Object> resultPercentage = new ArrayList<>();
         resultPercentage.add(Arrays.asList((double) last.getMonthValue(), (double) last.getYear(), lastValue));
         resultPercentage.add(Arrays.asList((double) before.getMonthValue(), (double) before.getYear(), beforeValue));
+        when(queryClient
+                .query(eq(PDA_PERC_MONTHS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(resultPercentage);
+    }
+
+    public static void mockIncompletePercentageResultMonths(RequestsSummaryType requestsSummaryType,
+            QueryServicesClient queryClient, LocalDate last, double lastValue) {
+        List<Object> resultPercentage = new ArrayList<>();
+        resultPercentage.add(Arrays.asList((double) last.getMonthValue(), (double) last.getYear(), lastValue));
         when(queryClient
                 .query(eq(PDA_PERC_MONTHS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
                 .thenReturn(resultPercentage);
@@ -81,6 +100,17 @@ public class RequestsSummaryTypeTestUtil {
         resultPercentage.add(Arrays
                 .asList((double) before.getDayOfMonth(), (double) before.getMonthValue(), (double) before.getYear(),
                         beforeValue));
+        when(queryClient
+                .query(eq(PDA_PERC_DAYS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
+                .thenReturn(resultPercentage);
+    }
+
+    public static void mockIncompletePercentageResultDays(RequestsSummaryType requestsSummaryType,
+            QueryServicesClient queryClient, LocalDate last, double lastValue) {
+        List<Object> resultPercentage = new ArrayList<>();
+        resultPercentage.add(Arrays
+                .asList((double) last.getDayOfMonth(), (double) last.getMonthValue(), (double) last.getYear(),
+                        lastValue));
         when(queryClient
                 .query(eq(PDA_PERC_DAYS_PREFIX + requestsSummaryType.getId()), anyString(), any(), any(), any()))
                 .thenReturn(resultPercentage);

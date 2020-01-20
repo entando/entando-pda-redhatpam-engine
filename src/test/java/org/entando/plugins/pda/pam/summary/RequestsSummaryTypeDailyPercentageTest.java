@@ -3,6 +3,7 @@ package org.entando.plugins.pda.pam.summary;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockEmptyPercentageResultDays;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockEmptyTotalResult;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockIncompletePercentageResultDays;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockPercentageResultDays;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.client.QueryServicesClient;
 
+@SuppressWarnings("PMD.TooManyMethods")
 public class RequestsSummaryTypeDailyPercentageTest {
 
     private RequestsSummaryType requestsSummaryType;
@@ -152,5 +154,44 @@ public class RequestsSummaryTypeDailyPercentageTest {
 
         // Then
         assertThat(summary.getPercentage()).isEqualTo("100");
+    }
+
+    @Test
+    public void shouldHave100PercentWhenTodayHasValueAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultDays(requestsSummaryType, queryClient, LocalDate.now(), 10);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("100");
+    }
+
+    @Test
+    public void shouldHave100PercentDecreaseWhenYesterdayHasValueAndAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultDays(requestsSummaryType, queryClient, LocalDate.now().minusDays(1), 10);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("-100");
+    }
+
+    @Test
+    public void shouldHaveZeroPercentWhenTodayHasZeroValueAndAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultDays(requestsSummaryType, queryClient, LocalDate.now(), 0);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.DAILY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 }

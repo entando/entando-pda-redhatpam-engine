@@ -3,6 +3,7 @@ package org.entando.plugins.pda.pam.summary;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockEmptyPercentageResultMonths;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockEmptyTotalResult;
+import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockIncompletePercentageResultMonths;
 import static org.entando.plugins.pda.pam.summary.RequestsSummaryTypeTestUtil.mockPercentageResultMonths;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.client.QueryServicesClient;
 
+@SuppressWarnings("PMD.TooManyMethods")
 public class RequestsSummaryTypeMonthlyPercentageTest {
 
     private RequestsSummaryType requestsSummaryType;
@@ -153,5 +155,44 @@ public class RequestsSummaryTypeMonthlyPercentageTest {
 
         // Then
         assertThat(summary.getPercentage()).isEqualTo("100");
+    }
+
+    @Test
+    public void shouldHave100PercentWhenThisMonthHasValueAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultMonths(requestsSummaryType, queryClient, LocalDate.now(), 10);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.MONTHLY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("100");
+    }
+
+    @Test
+    public void shouldHave100PercentDecreaseWhenLastMonthHasValueAndAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultMonths(requestsSummaryType, queryClient, LocalDate.now().minusMonths(1), 10);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.MONTHLY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("-100");
+    }
+
+    @Test
+    public void shouldHaveZeroPercentWhenThisMonthHasZeroValueAndAndIsTheOnlyOneOnResult() {
+        // Given
+        mockEmptyTotalResult(requestsSummaryType, queryClient);
+        mockIncompletePercentageResultMonths(requestsSummaryType, queryClient, LocalDate.now(), 0);
+
+        // When
+        Summary summary = requestsSummaryType.calculateSummary(Connection.builder().build(), FrequencyEnum.MONTHLY);
+
+        // Then
+        assertThat(summary.getPercentage()).isEqualTo("0");
     }
 }

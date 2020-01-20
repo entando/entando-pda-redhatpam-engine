@@ -29,6 +29,17 @@ public class KieSummaryUtils {
         return 0;
     }
 
+    public static double calculatePercentageDaysSingleResult(LocalDate lastDate, Double lastDateValue) {
+        LocalDate today = LocalDate.now();
+        if (today.isEqual(lastDate) && lastDateValue > 0) {
+            return ONE_HUNDRED_INCREASE;
+        }
+        if (today.minusDays(1).isEqual(lastDate) && lastDateValue > 0) {
+            return ONE_HUNDRED_DECREASE;
+        }
+        return 0.0;
+    }
+
     public static double calculatePercentageMonths(LocalDate lastDate, Double lastDateValue, LocalDate beforeLastDate,
             Double beforeLastDateValue) {
         LocalDate thisMonth = LocalDate.now().withDayOfMonth(1);
@@ -46,6 +57,18 @@ public class KieSummaryUtils {
         return 0;
     }
 
+    public static double calculatePercentageMonthsSingleResult(LocalDate lastDate, Double lastDateValue) {
+        LocalDate thisMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate lastMonth = lastDate.withDayOfMonth(1);
+        if (thisMonth.isEqual(lastMonth) && lastDateValue > 0) {
+            return ONE_HUNDRED_INCREASE;
+        }
+        if (thisMonth.minusMonths(1).isEqual(lastMonth) && lastDateValue > 0) {
+            return ONE_HUNDRED_DECREASE;
+        }
+        return 0.0;
+    }
+
     public static double calculatePercentageYears(int lastYear, Double lastYearValue, int beforeLastYear,
             Double beforeLastYearValue) {
         int thisYear = LocalDate.now().getYear();
@@ -59,6 +82,17 @@ public class KieSummaryUtils {
             return ONE_HUNDRED_DECREASE;
         }
         return 0;
+    }
+
+    public static double calculatePercentageYearsSingleResult(int lastYear, Double lastYearValue) {
+        int thisYear = LocalDate.now().getYear();
+        if (thisYear == lastYear && lastYearValue > 0) {
+            return ONE_HUNDRED_INCREASE;
+        }
+        if (thisYear - 1 == lastYear && lastYearValue > 0) {
+            return ONE_HUNDRED_DECREASE;
+        }
+        return 0.0;
     }
 
     public static double calculateTotal(FrequencyEnum frequency, LocalDate firstDate, LocalDate lastDate,

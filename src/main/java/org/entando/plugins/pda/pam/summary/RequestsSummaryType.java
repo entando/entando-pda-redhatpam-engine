@@ -1,8 +1,11 @@
 package org.entando.plugins.pda.pam.summary;
 
 import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageDays;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageDaysSingleResult;
 import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageMonths;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageMonthsSingleResult;
 import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageYears;
+import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculatePercentageYearsSingleResult;
 import static org.entando.plugins.pda.pam.summary.KieSummaryUtils.calculateTotal;
 
 import java.text.DecimalFormat;
@@ -29,10 +32,12 @@ public class RequestsSummaryType implements SummaryType {
     public static final String PDA_PERC_DAYS_PREFIX = "pda-perc-days-";
     public static final String PDA_PERC_MONTHS_PREFIX = "pda-perc-months-";
     public static final String PDA_PERC_YEARS_PREFIX = "pda-perc-years-";
-    public static final String KIE_SERVER_PERSISTENCE_DS = "${org.kie.server.persistence.ds}";
-    public static final String CUSTOM_TARGET = "CUSTOM";
     public static final String REQUESTS_TITLE = "REQUESTS.TITLE";
     public static final String REQUESTS_TOTAL_LABEL = "REQUESTS.TOTAL_LABEL";
+
+    private static final String KIE_SERVER_PERSISTENCE_DS = "${org.kie.server.persistence.ds}";
+    private static final String CUSTOM_TARGET = "CUSTOM";
+    private static final int SINGLE_RESULT_SIZE = 1;
 
     private final KieApiService kieApiService;
 
@@ -116,11 +121,14 @@ public class RequestsSummaryType implements SummaryType {
                 .of(((Double) result.get(0).get(2)).intValue(), ((Double) result.get(0).get(1)).intValue(),
                         ((Double) result.get(0).get(0)).intValue());
         Double lastDateValue = (Double) result.get(0).get(3);
-        LocalDate beforeLastDate = LocalDate
-                .of(((Double) result.get(1).get(2)).intValue(), ((Double) result.get(1).get(1)).intValue(),
-                        ((Double) result.get(1).get(0)).intValue());
-        Double beforeLastDateValue = (Double) result.get(1).get(3);
-        return calculatePercentageDays(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
+        if (result.size() > SINGLE_RESULT_SIZE) {
+            LocalDate beforeLastDate = LocalDate
+                    .of(((Double) result.get(1).get(2)).intValue(), ((Double) result.get(1).get(1)).intValue(),
+                            ((Double) result.get(1).get(0)).intValue());
+            Double beforeLastDateValue = (Double) result.get(1).get(3);
+            return calculatePercentageDays(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
+        }
+        return calculatePercentageDaysSingleResult(lastDate, lastDateValue);
     }
 
     private String getQueryPercentageDays() {
@@ -149,10 +157,13 @@ public class RequestsSummaryType implements SummaryType {
         LocalDate lastDate = LocalDate
                 .of(((Double) result.get(0).get(1)).intValue(), ((Double) result.get(0).get(0)).intValue(), 1);
         Double lastDateValue = (Double) result.get(0).get(2);
-        LocalDate beforeLastDate = LocalDate
-                .of(((Double) result.get(1).get(1)).intValue(), ((Double) result.get(1).get(0)).intValue(), 1);
-        Double beforeLastDateValue = (Double) result.get(1).get(2);
-        return calculatePercentageMonths(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
+        if (result.size() > SINGLE_RESULT_SIZE) {
+            LocalDate beforeLastDate = LocalDate
+                    .of(((Double) result.get(1).get(1)).intValue(), ((Double) result.get(1).get(0)).intValue(), 1);
+            Double beforeLastDateValue = (Double) result.get(1).get(2);
+            return calculatePercentageMonths(lastDate, lastDateValue, beforeLastDate, beforeLastDateValue);
+        }
+        return calculatePercentageMonthsSingleResult(lastDate, lastDateValue);
     }
 
     private String getQueryPercentageMonths() {
@@ -179,9 +190,12 @@ public class RequestsSummaryType implements SummaryType {
         }
         int lastYear = ((Double) result.get(0).get(0)).intValue();
         Double lastYearValue = (Double) result.get(0).get(1);
-        int beforeLastYear = ((Double) result.get(1).get(0)).intValue();
-        Double beforeLastYearValue = (Double) result.get(1).get(1);
-        return calculatePercentageYears(lastYear, lastYearValue, beforeLastYear, beforeLastYearValue);
+        if (result.size() > SINGLE_RESULT_SIZE) {
+            int beforeLastYear = ((Double) result.get(1).get(0)).intValue();
+            Double beforeLastYearValue = (Double) result.get(1).get(1);
+            return calculatePercentageYears(lastYear, lastYearValue, beforeLastYear, beforeLastYearValue);
+        }
+        return calculatePercentageYearsSingleResult(lastYear, lastYearValue);
     }
 
     private String getQueryPercentageYears() {
