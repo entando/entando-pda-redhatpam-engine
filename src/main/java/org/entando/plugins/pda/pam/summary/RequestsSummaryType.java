@@ -40,15 +40,14 @@ public class RequestsSummaryType implements SummaryType {
     private static final int SINGLE_RESULT_SIZE = 1;
 
     private final KieApiService kieApiService;
+    private final RequestsProperties requestsProperties;
 
     private DecimalFormat decimalFormat = new DecimalFormat("#.##");
 
     @Override
     public Summary calculateSummary(Connection connection, FrequencyEnum frequency) {
-        String totalQuery = "SELECT min(startdate) as first_date, max(startdate) as end_date, count(*) as total\n"
-                + "FROM processinstanceinfo\n";
         QueryServicesClient queryClient = kieApiService.getQueryServicesClient(connection);
-        double total = getTotal(queryClient, frequency, totalQuery);
+        double total = getTotal(queryClient, frequency, requestsProperties.getQueryTotal());
         double percentage = 0.0;
         if (frequency.equals(FrequencyEnum.DAILY)) {
             percentage = getPercentageDays(queryClient);
@@ -107,7 +106,7 @@ public class RequestsSummaryType implements SummaryType {
         QueryDefinition queryDefinition = QueryDefinition.builder()
                 .name(queryName)
                 .source(KIE_SERVER_PERSISTENCE_DS)
-                .expression(getQueryPercentageDays()).target(CUSTOM_TARGET)
+                .expression(requestsProperties.getQueryPercentageDays()).target(CUSTOM_TARGET)
                 .build();
         queryClient.replaceQuery(queryDefinition);
 
@@ -131,20 +130,12 @@ public class RequestsSummaryType implements SummaryType {
         return calculatePercentageDaysSingleResult(lastDate, lastDateValue);
     }
 
-    private String getQueryPercentageDays() {
-        return "SELECT day(startdate) as day, month(startdate) as month, year(startdate) as year, count(*) as total\n"
-                + "FROM processinstanceinfo\n"
-                + "GROUP BY day, month, year\n"
-                + "ORDER BY year DESC, month DESC, day DESC\n"
-                + "LIMIT 2\n";
-    }
-
     private double getPercentageMonths(QueryServicesClient queryClient) {
         String queryName = PDA_PERC_MONTHS_PREFIX + getId();
         QueryDefinition queryDefinition = QueryDefinition.builder()
                 .name(queryName)
                 .source(KIE_SERVER_PERSISTENCE_DS)
-                .expression(getQueryPercentageMonths()).target(CUSTOM_TARGET)
+                .expression(requestsProperties.getQueryPercentageMonths()).target(CUSTOM_TARGET)
                 .build();
         queryClient.replaceQuery(queryDefinition);
 
@@ -166,19 +157,12 @@ public class RequestsSummaryType implements SummaryType {
         return calculatePercentageMonthsSingleResult(lastDate, lastDateValue);
     }
 
-    private String getQueryPercentageMonths() {
-        return "SELECT month(startdate) as month, year(startdate) as year, count(*) as total FROM processinstanceinfo\n"
-                + "GROUP BY month, year\n"
-                + "ORDER BY year DESC, month DESC\n"
-                + "LIMIT 2\n";
-    }
-
     private double getPercentageYears(QueryServicesClient queryClient) {
         String queryName = PDA_PERC_YEARS_PREFIX + getId();
         QueryDefinition queryDefinition = QueryDefinition.builder()
                 .name(queryName)
                 .source(KIE_SERVER_PERSISTENCE_DS)
-                .expression(getQueryPercentageYears()).target(CUSTOM_TARGET)
+                .expression(requestsProperties.getQueryPercentageYears()).target(CUSTOM_TARGET)
                 .build();
         queryClient.replaceQuery(queryDefinition);
 
@@ -196,12 +180,5 @@ public class RequestsSummaryType implements SummaryType {
             return calculatePercentageYears(lastYear, lastYearValue, beforeLastYear, beforeLastYearValue);
         }
         return calculatePercentageYearsSingleResult(lastYear, lastYearValue);
-    }
-
-    private String getQueryPercentageYears() {
-        return "SELECT year(startdate) as year, count(*) as total FROM processinstanceinfo\n"
-                + "GROUP BY year\n"
-                + "ORDER BY year DESC\n"
-                + "LIMIT 2\n";
     }
 }

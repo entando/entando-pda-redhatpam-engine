@@ -29,7 +29,7 @@ public class RequestsSummaryTypeMonthlyPercentageTest {
         KieApiService kieApiService = mock(KieApiService.class);
         queryClient = mock(QueryServicesClient.class);
         when(kieApiService.getQueryServicesClient(any())).thenReturn(queryClient);
-        requestsSummaryType = new RequestsSummaryType(kieApiService);
+        requestsSummaryType = new RequestsSummaryType(kieApiService, new RequestsProperties());
     }
 
     @Test
