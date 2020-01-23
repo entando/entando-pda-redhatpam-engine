@@ -1,0 +1,17 @@
+{
+  "application":{
+    "property":{
+      "address":"123 Test",
+      "saleprice":60000,
+      "locale":"123",
+      "age":12
+    },
+    "applicant":{
+      "name":"Test",
+      "annualincome":50000,
+      "ssn":"123456789"
+    },
+    "amortization":30,
+    "downpayment":50000
+  }
+}
