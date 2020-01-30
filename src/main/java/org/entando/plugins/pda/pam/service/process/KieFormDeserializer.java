@@ -113,7 +113,7 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                                 .placeholder(getString(field, "placeHolder"))
                                 .build());
             } catch (IllegalArgumentException e) {
-                log.error(String.format("Invalid field Type: %s", field.get("code").asText()), e);
+                log.error("Invalid field Type: {}", field.get("code").asText(), e);
             }
         }
 
@@ -164,7 +164,7 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
 
     private Boolean getBoolean(JsonNode node, String label) {
         JsonNode value = getNode(node, label);
-        return value == null ? null : value.asBoolean();
+        return value != null && value.asBoolean();
     }
 
     private FormFieldType getType(JsonNode node) {

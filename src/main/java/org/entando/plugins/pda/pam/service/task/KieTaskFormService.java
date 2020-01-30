@@ -27,8 +27,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KieTaskFormService implements TaskFormService {
 
-    private final KieTaskService taskService;
-
     private final KieApiService kieApiService;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
