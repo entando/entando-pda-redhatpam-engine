@@ -59,7 +59,7 @@ public class KieTaskFormServiceTest {
         when(kieApiService.getUserTaskServicesClient(any())).thenReturn(taskServicesClient);
 
         KieTaskService taskService = new KieTaskService(kieApiService);
-        kieTaskFormService = new KieTaskFormService(taskService, kieApiService);
+        kieTaskFormService = new KieTaskFormService(kieApiService);
     }
 
     @Test
