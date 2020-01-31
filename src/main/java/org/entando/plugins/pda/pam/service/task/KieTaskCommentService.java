@@ -29,7 +29,7 @@ public class KieTaskCommentService implements TaskCommentService {
     private final KieApiService kieApiService;
 
     @Override
-    public List<Comment> listComments(Connection connection, AuthenticatedUser user, String id) {
+    public List<Comment> list(Connection connection, AuthenticatedUser user, String id) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 
@@ -50,7 +50,7 @@ public class KieTaskCommentService implements TaskCommentService {
     }
 
     @Override
-    public Comment getComment(Connection connection, AuthenticatedUser user, String id, String commentId) {
+    public Comment get(Connection connection, AuthenticatedUser user, String id, String commentId) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 
@@ -71,7 +71,7 @@ public class KieTaskCommentService implements TaskCommentService {
     }
 
     @Override
-    public Comment createComment(Connection connection, AuthenticatedUser user, String id,
+    public Comment create(Connection connection, AuthenticatedUser user, String id,
             CreateCommentRequest request) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
@@ -101,7 +101,7 @@ public class KieTaskCommentService implements TaskCommentService {
     }
 
     @Override
-    public String deleteComment(Connection connection, AuthenticatedUser user, String id, String commentId) {
+    public String delete(Connection connection, AuthenticatedUser user, String id, String commentId) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 

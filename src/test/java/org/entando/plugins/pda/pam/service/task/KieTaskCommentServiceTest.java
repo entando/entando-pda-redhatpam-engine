@@ -63,7 +63,7 @@ public class KieTaskCommentServiceTest {
                 .collect(Collectors.toList()));
 
         // When
-        List<Comment> comments = kieTaskService.listComments(getDummyConnection(),
+        List<Comment> comments = kieTaskService.list(getDummyConnection(),
                 getDummyUser("Chuck Norris"), taskId.toString());
 
         // Then
@@ -81,7 +81,7 @@ public class KieTaskCommentServiceTest {
                 .thenReturn(Long.valueOf(KieTaskTestHelper.TASK_COMMENT_ID_2_2));
 
         // When
-        Comment comment = kieTaskService.createComment(getDummyConnection(),
+        Comment comment = kieTaskService.create(getDummyConnection(),
                 getDummyUser(KieTaskTestHelper.TASK_COMMENT_OWNER_2), taskId.toString(), request);
 
         // Then
@@ -103,7 +103,7 @@ public class KieTaskCommentServiceTest {
                 .thenReturn(KieTaskCommentService.commentToDto(expectedComment));
 
         // When
-        Comment comment = kieTaskService.getComment(getDummyConnection(), null, taskId.toString(),
+        Comment comment = kieTaskService.get(getDummyConnection(), null, taskId.toString(),
                 KieTaskTestHelper.TASK_COMMENT_ID_1_1);
 
         // Then
@@ -119,7 +119,7 @@ public class KieTaskCommentServiceTest {
         KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_1, KieTaskTestHelper.TASK_ID_1);
 
         // When
-        String commentId = kieTaskService.deleteComment(getDummyConnection(), null, taskId.toString(),
+        String commentId = kieTaskService.delete(getDummyConnection(), null, taskId.toString(),
                 KieTaskTestHelper.TASK_COMMENT_ID_1_1);
 
         // Then
@@ -138,7 +138,7 @@ public class KieTaskCommentServiceTest {
         expectedException.expect(CommentNotFoundException.class);
 
         // When
-        kieTaskService.getComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
+        kieTaskService.get(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
     }
 
     @Test
@@ -151,7 +151,7 @@ public class KieTaskCommentServiceTest {
         expectedException.expect(CommentNotFoundException.class);
 
         // When
-        kieTaskService.getComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
+        kieTaskService.get(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
     }
 
     @Test
@@ -164,7 +164,7 @@ public class KieTaskCommentServiceTest {
         expectedException.expect(CommentNotFoundException.class);
 
         // When
-        kieTaskService.deleteComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
+        kieTaskService.delete(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class KieTaskCommentServiceTest {
         expectedException.expect(CommentNotFoundException.class);
 
         // When
-        kieTaskService.deleteComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
+        kieTaskService.delete(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
     }
 
     @Test
@@ -186,7 +186,7 @@ public class KieTaskCommentServiceTest {
         expectedException.expect(KieInvalidIdException.class);
 
         // When
-        kieTaskService.listComments(null, null, "notnumeric@c1");
+        kieTaskService.list(null, null, "notnumeric@c1");
     }
 
     @Test
@@ -195,6 +195,6 @@ public class KieTaskCommentServiceTest {
         expectedException.expect(KieInvalidIdException.class);
 
         // When
-        kieTaskService.listComments(null, null, "1-c1");
+        kieTaskService.list(null, null, "1-c1");
     }
 }
