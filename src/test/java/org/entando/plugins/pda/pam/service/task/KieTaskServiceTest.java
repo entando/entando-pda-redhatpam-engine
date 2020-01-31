@@ -12,7 +12,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -305,6 +304,7 @@ public class KieTaskServiceTest {
                 null, null);
     }
 
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
             int lastPage, String username, Integer page, Integer pageSize, String sort, String direction,
             String filter) {
