@@ -1,154 +1,170 @@
 package org.entando.plugins.pda.pam.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.experimental.UtilityClass;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
 import org.entando.plugins.pda.core.model.form.FormFieldInteger;
+import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
 import org.entando.plugins.pda.core.model.form.FormFieldText;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
 
+// CPD-OFF
 @UtilityClass
 @SuppressWarnings("PMD.ExcessiveMethodLength")
 public class KieProcessFormTestHelper {
 
-    public List<Form> createProcessForms() {
+    public Form createProcessForm() {
+        List<FormField> fields = new ArrayList<>();
 
-        List<Form> result = new ArrayList<>();
+        FormFieldSubForm fieldSubform1 = FormFieldSubForm.builder()
+                .id("field_1786956128605089E11")
+                .name("applicant")
+                .label("Applicant")
+                .type(FormFieldType.SUBFORM)
+                .formId("applicant")
+                .formType("com.myspace.mortgage_app.Applicant")
+                .build();
 
-        List<FormField> fields1 = new ArrayList<>();
 
-        result.add(Form.builder()
-                .id("2b1fd086-ed4c-4da7-8e61-1b203c1dc82f")
-                .name("Mortgage_Process.MortgageApprovalProcess-taskform.frm")
-                .fields(new ArrayList<>())
-                .build());
+        FormFieldSubForm fieldSubform2 = FormFieldSubForm.builder()
+                .id("field_1811697043491191E12")
+                .name("property")
+                .label("Property")
+                .type(FormFieldType.SUBFORM)
+                .formId("property")
+                .formType("com.myspace.mortgage_app.Property")
+                .build();
 
-        fields1.add(FormFieldInteger.builder()
-                .id("field_815717729253767E11")
-                .name("age")
-                .label("Age of property")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Age of property")
-                .build()
-        );
+        fields.add(fieldSubform1);
+        fields.add(fieldSubform2);
 
-        fields1.add(FormFieldText.builder()
-                .id("field_236289653097941E11")
-                .name("address")
-                .label("Address of property")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.STRING)
-                .placeholder("Address of property")
-                .maxLength(100)
-                .build()
-        );
-
-        fields1.add(FormFieldText.builder()
-                .id("field_9471909295199063E11")
-                .name("locale")
-                .label("Locale")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.STRING)
-                .placeholder("Locale")
-                .maxLength(100)
-                .build()
-        );
-
-        fields1.add(FormFieldInteger.builder()
-                .id("field_4113393327260706E12")
-                .name("saleprice")
-                .label("Sale Price")
-                .required(false)
-                .readOnly(false)
-                .type(FormFieldType.INTEGER)
-                .placeholder("Sale Price")
-                .build()
-        );
-
-        result.add(Form.builder()
-                .id("2aeaf281-71e1-45a5-9ab3-0abd855d924e")
-                .name("Property")
-                .fields(fields1)
-                .build());
-
-        List<FormField> fields2 = new ArrayList<>();
-
-        fields2.add(FormFieldInteger.builder()
+        fields.add(FormFieldInteger.builder()
                 .id("field_290268943445829E11")
                 .name("downpayment")
                 .label("Down Payment")
-                .required(false)
-                .readOnly(false)
                 .type(FormFieldType.INTEGER)
                 .placeholder("Down Payment")
                 .build()
         );
 
-        fields2.add(FormFieldInteger.builder()
+        fields.add(FormFieldInteger.builder()
                 .id("field_0343033866589585E12")
                 .name("amortization")
                 .label("Years of amortization")
-                .required(false)
-                .readOnly(false)
                 .type(FormFieldType.INTEGER)
                 .placeholder("Years of amortization")
                 .build()
         );
 
-        result.add(Form.builder()
-                .id("b71de860-4d3e-4b0c-95e9-c41e4d06f787")
+        Form holder = Form.builder()
+                .id("application")
+                .type("com.myspace.mortgage_app.Application")
                 .name("Application")
-                .fields(fields2)
-                .build());
+                .fields(fields)
+                .build();
 
-        List<FormField> fields3 = new ArrayList<>();
-
-        fields3.add(FormFieldText.builder()
+        List<FormField> fields1 = new ArrayList<>();
+        fields1.add(FormFieldText.builder()
                 .id("field_922175737010885E11")
                 .name("name")
                 .label("Name")
-                .required(false)
-                .readOnly(false)
                 .type(FormFieldType.STRING)
                 .placeholder("Name")
                 .maxLength(100)
                 .build()
         );
 
-        fields3.add(FormFieldInteger.builder()
+        fields1.add(FormFieldInteger.builder()
                 .id("field_405154649767496E12")
                 .name("annualincome")
                 .label("Annual Income")
-                .required(false)
-                .readOnly(false)
                 .type(FormFieldType.INTEGER)
                 .placeholder("Annual Income")
                 .build()
         );
 
-        fields3.add(FormFieldInteger.builder()
+        fields1.add(FormFieldInteger.builder()
                 .id("field_670713100411637E11")
                 .name("ssn")
                 .label("SSN")
-                .required(false)
-                .readOnly(false)
                 .type(FormFieldType.INTEGER)
                 .placeholder("SSN")
                 .build()
         );
 
-        result.add(Form.builder()
-                .id("0cb94115-b991-4dbe-a342-00d99a1cdd2d")
-                .name("Applicant")
-                .fields(fields3)
-                .build());
+        List<FormField> fields2 = new ArrayList<>();
+        fields2.add(FormFieldInteger.builder()
+                .id("field_815717729253767E11")
+                .name("age")
+                .label("Age of property")
+                .type(FormFieldType.INTEGER)
+                .placeholder("Age of property")
+                .build()
+        );
 
-        return result;
+        fields2.add(FormFieldText.builder()
+                .id("field_236289653097941E11")
+                .name("address")
+                .label("Address of property")
+                .type(FormFieldType.STRING)
+                .placeholder("Address of property")
+                .maxLength(100)
+                .build()
+        );
+
+        fields2.add(FormFieldText.builder()
+                .id("field_9471909295199063E11")
+                .name("locale")
+                .label("Locale")
+                .type(FormFieldType.STRING)
+                .placeholder("Locale")
+                .maxLength(100)
+                .build()
+        );
+
+        fields2.add(FormFieldInteger.builder()
+                .id("field_4113393327260706E12")
+                .name("saleprice")
+                .label("Sale Price")
+                .type(FormFieldType.INTEGER)
+                .placeholder("Sale Price")
+                .build()
+        );
+
+
+        Form subform1 = Form.builder()
+                .id("applicant")
+                .name("Applicant")
+                .type("com.myspace.mortgage_app.Applicant")
+                .fields(fields1)
+                .build();
+
+        Form subform2 = Form.builder()
+                .id("property")
+                .name("Property")
+                .type("com.myspace.mortgage_app.Property")
+                .fields(fields2)
+                .build();
+
+        fieldSubform1.setForm(subform1);
+        fieldSubform2.setForm(subform2);
+
+        return Form.builder()
+                .id("process")
+                .name("Mortgage_Process.MortgageApprovalProcess-taskform.frm")
+                .fields(Collections.singletonList(
+                        FormFieldSubForm.builder()
+                                .id("field_0906698901603516E10")
+                                .name("application")
+                                .label("Application")
+                                .type(FormFieldType.SUBFORM)
+                                .formId("application")
+                                .formType("com.myspace.mortgage_app.Application")
+                                .form(holder)
+                                .build()))
+                .build();
     }
 }

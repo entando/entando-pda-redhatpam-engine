@@ -1,116 +1,172 @@
 [
   {
-    "id":"47078d21-7da5-4d3f-8355-0fcd78b09f39",
-    "name":"PerformanceEvaluation-taskform.frm",
-    "model":{
-      "taskName":"PerformanceEvaluation",
-      "processId":"evaluation",
-      "name":"task",
-      "properties":[
+    "id": "2aeaf281-71e1-45a5-9ab3-0abd855d924e",
+    "name": "Property",
+    "model": {
+      "source": "INTERNAL",
+      "className": "com.myspace.mortgage_app.Property",
+      "name": "property",
+      "properties": [
         {
-          "name":"BusinessAdministratorId",
-          "typeInfo":{
-            "type":"BASE",
-            "className":"java.lang.String",
-            "multiple":false
+          "name": "age",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
           },
-          "metaData":{
-            "entries":[
+          "metaData": {
+            "entries": [
               {
-                "name":"field-readOnly",
-                "value":true
+                "name": "field-label",
+                "value": "Age of property"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Age of property"
               }
             ]
           }
         },
         {
-          "name":"reason",
-          "typeInfo":{
-            "type":"BASE",
-            "className":"java.lang.String",
-            "multiple":false
+          "name": "address",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.String",
+            "multiple": false
           },
-          "metaData":{
-            "entries":[
+          "metaData": {
+            "entries": [
               {
-                "name":"field-readOnly",
-                "value":true
+                "name": "field-label",
+                "value": "Address of property"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Address of property"
               }
             ]
           }
         },
         {
-          "name":"performance",
-          "typeInfo":{
-            "type":"BASE",
-            "className":"java.lang.Integer",
-            "multiple":false
+          "name": "locale",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.String",
+            "multiple": false
           },
-          "metaData":{
-            "entries":[
+          "metaData": {
+            "entries": [
               {
-                "name":"field-readOnly",
-                "value":false
+                "name": "field-label",
+                "value": "Locale"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Locale"
+              }
+            ]
+          }
+        },
+        {
+          "name": "saleprice",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Sale Price"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Sale Price"
               }
             ]
           }
         }
       ],
-      "formModelType":"org.kie.workbench.common.forms.jbpm.model.authoring.task.TaskFormModel"
+      "formModelType": "org.kie.workbench.common.forms.data.modeller.model.DataObjectFormModel"
     },
-    "fields":[
+    "fields": [
       {
-        "placeHolder":"Reason",
-        "rows":4,
-        "id":"field_332058348325587E12",
-        "name":"reason",
-        "label":"Reason",
-        "required":false,
-        "readOnly":true,
-        "validateOnChange":true,
-        "binding":"reason",
-        "standaloneClassName":"java.lang.String",
-        "code":"TextArea",
-        "serializedFieldClassName":"org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.textArea.definition.TextAreaFieldDefinition"
+        "placeHolder": "Age of property",
+        "maxLength": 100,
+        "id": "field_815717729253767E11",
+        "name": "age",
+        "label": "Age of property",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "age",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
       },
       {
-        "placeHolder":"Performance",
-        "maxLength":100,
-        "id":"field_336003622256354E12",
-        "name":"performance",
-        "label":"Performance",
-        "required":true,
-        "readOnly":false,
-        "validateOnChange":true,
-        "binding":"performance",
-        "standaloneClassName":"java.lang.Integer",
-        "code":"IntegerBox",
-        "serializedFieldClassName":"org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
+        "maxLength": 100,
+        "placeHolder": "Address of property",
+        "id": "field_236289653097941E11",
+        "name": "address",
+        "label": "Address of property",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "address",
+        "standaloneClassName": "java.lang.String",
+        "code": "TextBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.textBox.definition.TextBoxFieldDefinition"
+      },
+      {
+        "maxLength": 100,
+        "placeHolder": "Locale",
+        "id": "field_9471909295199063E11",
+        "name": "locale",
+        "label": "Locale",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "locale",
+        "standaloneClassName": "java.lang.String",
+        "code": "TextBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.textBox.definition.TextBoxFieldDefinition"
+      },
+      {
+        "placeHolder": "Sale Price",
+        "maxLength": 100,
+        "id": "field_4113393327260706E12",
+        "name": "saleprice",
+        "label": "Sale Price",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "saleprice",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
       }
     ],
-    "layoutTemplate":{
-      "version":2,
-      "name":"PerformanceEvaluation-taskform.frm",
-      "style":"FLUID",
-      "layoutProperties":{
-
-      },
-      "rows":[
+    "layoutTemplate": {
+      "version": 2,
+      "style": "FLUID",
+      "layoutProperties": {},
+      "rows": [
         {
-          "height":"12",
-          "layoutColumns":[
+          "properties": {},
+          "layoutColumns": [
             {
-              "span":"12",
-              "height":"12",
-              "rows":[
-
-              ],
-              "layoutComponents":[
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
                 {
-                  "dragTypeName":"org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
-                  "properties":{
-                    "field_id":"field_332058348325587E12",
-                    "form_id":"47078d21-7da5-4d3f-8355-0fcd78b09f39"
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_815717729253767E11",
+                    "form_id": "2aeaf281-71e1-45a5-9ab3-0abd855d924e"
                   }
                 }
               ]
@@ -118,20 +174,763 @@
           ]
         },
         {
-          "height":"12",
-          "layoutColumns":[
+          "properties": {},
+          "layoutColumns": [
             {
-              "span":"12",
-              "height":"12",
-              "rows":[
-
-              ],
-              "layoutComponents":[
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
                 {
-                  "dragTypeName":"org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
-                  "properties":{
-                    "field_id":"field_336003622256354E12",
-                    "form_id":"47078d21-7da5-4d3f-8355-0fcd78b09f39"
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_236289653097941E11",
+                    "form_id": "2aeaf281-71e1-45a5-9ab3-0abd855d924e"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_9471909295199063E11",
+                    "form_id": "2aeaf281-71e1-45a5-9ab3-0abd855d924e"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_4113393327260706E12",
+                    "form_id": "2aeaf281-71e1-45a5-9ab3-0abd855d924e"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "561af0ca-25c8-432d-bd60-e95e3f1b5373",
+    "name": "ApplicationMortgage",
+    "model": {
+      "source": "INTERNAL",
+      "className": "com.myspace.mortgage_app.Application",
+      "name": "Application",
+      "properties": [
+        {
+          "name": "applicant",
+          "typeInfo": {
+            "type": "OBJECT",
+            "className": "com.myspace.mortgage_app.Applicant",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Applicant"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Applicant"
+              }
+            ]
+          }
+        },
+        {
+          "name": "property",
+          "typeInfo": {
+            "type": "OBJECT",
+            "className": "com.myspace.mortgage_app.Property",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Property"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Property"
+              }
+            ]
+          }
+        },
+        {
+          "name": "errors",
+          "typeInfo": {
+            "type": "OBJECT",
+            "className": "com.myspace.mortgage_app.ValidationErrorDO",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Error details"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Error details"
+              }
+            ]
+          }
+        },
+        {
+          "name": "downpayment",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Down Payment"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Down Payment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "amortization",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Years of amortization"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Years of amortization"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mortgageamount",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Mortgage amount"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Mortgage amount"
+              }
+            ]
+          }
+        }
+      ],
+      "formModelType": "org.kie.workbench.common.forms.data.modeller.model.DataObjectFormModel"
+    },
+    "fields": [
+      {
+        "placeHolder": "Mortgage amount",
+        "maxLength": 100,
+        "id": "field_4086",
+        "name": "mortgageamount",
+        "label": "Mortgage amount",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "mortgageamount",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
+      },
+      {
+        "placeHolder": "Down Payment",
+        "maxLength": 100,
+        "id": "field_3875",
+        "name": "downpayment",
+        "label": "Down Payment",
+        "required": false,
+        "readOnly": true,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "downpayment",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
+      },
+      {
+        "placeHolder": "Years of amortization",
+        "maxLength": 100,
+        "id": "field_1184",
+        "name": "amortization",
+        "label": "Years of amortization",
+        "required": false,
+        "readOnly": true,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "amortization",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
+      },
+      {
+        "nestedForm": "0cb94115-b991-4dbe-a342-00d99a1cdd2d",
+        "container": "FIELD_SET",
+        "id": "field_7992",
+        "name": "applicant",
+        "label": "Applicant",
+        "required": false,
+        "readOnly": true,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "applicant",
+        "standaloneClassName": "com.myspace.mortgage_app.Applicant",
+        "code": "SubForm",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.relations.subForm.definition.SubFormFieldDefinition"
+      },
+      {
+        "nestedForm": "2aeaf281-71e1-45a5-9ab3-0abd855d924e",
+        "container": "FIELD_SET",
+        "id": "field_4885",
+        "name": "property",
+        "label": "Property",
+        "required": false,
+        "readOnly": true,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "property",
+        "standaloneClassName": "com.myspace.mortgage_app.Property",
+        "code": "SubForm",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.relations.subForm.definition.SubFormFieldDefinition"
+      }
+    ],
+    "layoutTemplate": {
+      "version": 2,
+      "style": "FLUID",
+      "layoutProperties": {},
+      "rows": [
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_4086",
+                    "form_id": "561af0ca-25c8-432d-bd60-e95e3f1b5373"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "6",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_3875",
+                    "form_id": "561af0ca-25c8-432d-bd60-e95e3f1b5373"
+                  }
+                }
+              ]
+            },
+            {
+              "span": "6",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_1184",
+                    "form_id": "561af0ca-25c8-432d-bd60-e95e3f1b5373"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_7992",
+                    "form_id": "561af0ca-25c8-432d-bd60-e95e3f1b5373"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_4885",
+                    "form_id": "561af0ca-25c8-432d-bd60-e95e3f1b5373"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "59d5f0d5-74af-49cd-98c5-b1d855951f05",
+    "name": "Qualify-taskform.frm",
+    "model": {
+      "taskName": "Qualify",
+      "processId": "Mortgage_Process.MortgageApprovalProcess",
+      "name": "task",
+      "properties": [
+        {
+          "name": "application",
+          "typeInfo": {
+            "type": "OBJECT",
+            "className": "com.myspace.mortgage_app.Application",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-readOnly",
+                "value": true
+              }
+            ]
+          }
+        },
+        {
+          "name": "inlimit",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Boolean",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-readOnly",
+                "value": false
+              }
+            ]
+          }
+        }
+      ],
+      "formModelType": "org.kie.workbench.common.forms.jbpm.model.authoring.task.TaskFormModel"
+    },
+    "fields": [
+      {
+        "nestedForm": "561af0ca-25c8-432d-bd60-e95e3f1b5373",
+        "container": "FIELD_SET",
+        "id": "field_0627466111868674E11",
+        "name": "application",
+        "label": "Application",
+        "required": false,
+        "readOnly": true,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "application",
+        "standaloneClassName": "com.myspace.mortgage_app.Application",
+        "code": "SubForm",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.relations.subForm.definition.SubFormFieldDefinition"
+      },
+      {
+        "id": "field_282450953523892E10",
+        "name": "inlimit",
+        "label": "Is mortgage application in limit?",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "helpMessage": "",
+        "binding": "inlimit",
+        "standaloneClassName": "java.lang.Boolean",
+        "code": "CheckBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.checkBox.definition.CheckBoxFieldDefinition"
+      }
+    ],
+    "layoutTemplate": {
+      "version": 2,
+      "style": "FLUID",
+      "layoutProperties": {},
+      "rows": [
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.uberfire.ext.plugin.client.perspective.editor.layout.editor.HTMLLayoutDragComponent",
+                  "properties": {
+                    "HTML_CODE": "<h3>Inputs:</h3>"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_0627466111868674E11",
+                    "form_id": "59d5f0d5-74af-49cd-98c5-b1d855951f05"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.uberfire.ext.plugin.client.perspective.editor.layout.editor.HTMLLayoutDragComponent",
+                  "properties": {
+                    "HTML_CODE": "<h3>Outputs:</h3>"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_282450953523892E10",
+                    "form_id": "59d5f0d5-74af-49cd-98c5-b1d855951f05"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "0cb94115-b991-4dbe-a342-00d99a1cdd2d",
+    "name": "Applicant",
+    "model": {
+      "source": "INTERNAL",
+      "className": "com.myspace.mortgage_app.Applicant",
+      "name": "applicant",
+      "properties": [
+        {
+          "name": "name",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.String",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Name"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "annualincome",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Annual Income"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Annual Income"
+              }
+            ]
+          }
+        },
+        {
+          "name": "address",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.String",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Address"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Address"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ssn",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "SSN"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "SSN"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creditrating",
+          "typeInfo": {
+            "type": "BASE",
+            "className": "java.lang.Integer",
+            "multiple": false
+          },
+          "metaData": {
+            "entries": [
+              {
+                "name": "field-label",
+                "value": "Credit Rating"
+              },
+              {
+                "name": "field-placeHolder",
+                "value": "Credit Rating"
+              }
+            ]
+          }
+        }
+      ],
+      "formModelType": "org.kie.workbench.common.forms.data.modeller.model.DataObjectFormModel"
+    },
+    "fields": [
+      {
+        "maxLength": 100,
+        "placeHolder": "Name",
+        "id": "field_922175737010885E11",
+        "name": "name",
+        "label": "Name",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "name",
+        "standaloneClassName": "java.lang.String",
+        "code": "TextBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.textBox.definition.TextBoxFieldDefinition"
+      },
+      {
+        "placeHolder": "Annual Income",
+        "maxLength": 100,
+        "id": "field_405154649767496E12",
+        "name": "annualincome",
+        "label": "Annual Income",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "annualincome",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
+      },
+      {
+        "placeHolder": "SSN",
+        "maxLength": 100,
+        "id": "field_670713100411637E11",
+        "name": "ssn",
+        "label": "SSN",
+        "required": false,
+        "readOnly": false,
+        "validateOnChange": true,
+        "binding": "ssn",
+        "standaloneClassName": "java.lang.Integer",
+        "code": "IntegerBox",
+        "serializedFieldClassName": "org.kie.workbench.common.forms.fields.shared.fieldTypes.basic.integerBox.definition.IntegerBoxFieldDefinition"
+      }
+    ],
+    "layoutTemplate": {
+      "version": 2,
+      "style": "FLUID",
+      "layoutProperties": {},
+      "rows": [
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_922175737010885E11",
+                    "form_id": "0cb94115-b991-4dbe-a342-00d99a1cdd2d"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_405154649767496E12",
+                    "form_id": "0cb94115-b991-4dbe-a342-00d99a1cdd2d"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "height": "12",
+          "properties": {},
+          "layoutColumns": [
+            {
+              "span": "12",
+              "height": "12",
+              "properties": {},
+              "rows": [],
+              "layoutComponents": [
+                {
+                  "dragTypeName": "org.kie.workbench.common.forms.editor.client.editor.rendering.EditorFieldLayoutComponent",
+                  "properties": {
+                    "field_id": "field_670713100411637E11",
+                    "form_id": "0cb94115-b991-4dbe-a342-00d99a1cdd2d"
                   }
                 }
               ]

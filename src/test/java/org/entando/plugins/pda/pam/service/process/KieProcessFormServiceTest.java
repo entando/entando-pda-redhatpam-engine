@@ -2,15 +2,19 @@ package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.PROCESS_DEFINITION_ID;
+import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 import org.entando.plugins.pda.core.engine.Connection;
-import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
+import org.entando.plugins.pda.core.exception.ProcessDefinitionNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
@@ -20,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.kie.server.api.exception.KieServicesHttpException;
+import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.UIServicesClient;
 import org.springframework.http.HttpStatus;
 
@@ -28,6 +33,12 @@ public class KieProcessFormServiceTest {
     private Connection connection;
     private KieProcessFormService kieProcessFormService;
     private UIServicesClient uiServicesClient;
+    private ProcessServicesClient processServicesClient;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String PROCESS_FORM_JSON = "process-form.json";
+    private static final String SUBMIT_PROCESS_FORM_JSON = "process-form-submission.json";
+    private static final String KIE_SUBMIT_PROCESS_FORM_JSON = "kie-process-form-submission.json";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -38,8 +49,10 @@ public class KieProcessFormServiceTest {
 
         KieApiService kieApiService = mock(KieApiService.class);
         uiServicesClient = mock(UIServicesClient.class);
+        processServicesClient = mock(ProcessServicesClient.class);
 
         when(kieApiService.getUiServicesClient(connection)).thenReturn(uiServicesClient);
+        when(kieApiService.getProcessServicesClient(connection)).thenReturn(processServicesClient);
 
         kieProcessFormService = new KieProcessFormService(kieApiService);
     }
@@ -50,12 +63,12 @@ public class KieProcessFormServiceTest {
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
-        List<Form> expected = KieProcessFormTestHelper.createProcessForms();
+        Form expected = KieProcessFormTestHelper.createProcessForm();
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
-            .thenReturn(readFromFile("process-form.json"));
+            .thenReturn(readFromFile(PROCESS_FORM_JSON));
 
         // When
-        List<Form> result = kieProcessFormService.getProcessForm(connection, processId.toString());
+        Form result = kieProcessFormService.get(connection, processId.toString());
 
         // Then
         assertThat(result).isEqualTo(expected);
@@ -64,13 +77,68 @@ public class KieProcessFormServiceTest {
     }
 
     @Test
-    public void shouldThrowProcessNotFound() {
+    public void shouldThrowProcessDefinitionNotFoundWhenGetProcessForm() {
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
 
-        expectedException.expect(ProcessNotFoundException.class);
+        expectedException.expect(ProcessDefinitionNotFoundException.class);
 
-        kieProcessFormService.getProcessForm(connection, PROCESS_DEFINITION_ID);
+        kieProcessFormService.get(connection, PROCESS_DEFINITION_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldSubmitProcessForm() throws Exception {
+
+        KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
+
+        // Given
+        Map<String, Object> request = MAPPER.readValue(
+                readFromFile(SUBMIT_PROCESS_FORM_JSON), Map.class);
+        Map<String, Object> kieRequest = MAPPER.readValue(
+                readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON), Map.class);
+
+        Long expected = randomLongId();
+
+        when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
+                .thenReturn(expected);
+
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+                .thenReturn(readFromFile(PROCESS_FORM_JSON));
+
+        // When
+        String result = kieProcessFormService.submit(connection, processId.toString(), request);
+
+        // Then
+        assertThat(result).isEqualTo(expected.toString());
+        verify(processServicesClient)
+                .startProcess(processId.getContainerId(), processId.getDefinitionId(), kieRequest);
+    }
+
+    @Test
+    public void shouldThrowNotFoundWhenSubmitProcessFormWithInvalidProcessDefinitionId() {
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+                .thenReturn(readFromFile(PROCESS_FORM_JSON));
+
+        when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
+                .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
+
+        expectedException.expect(ProcessDefinitionNotFoundException.class);
+
+        kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>());
+    }
+
+    @Test
+    public void shouldThrowNotFoundWhenSubmitProcessFormWithInvalidContainerId() {
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+                .thenReturn(readFromFile(PROCESS_FORM_JSON));
+
+        when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
+                .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
+
+        expectedException.expect(ProcessDefinitionNotFoundException.class);
+
+        kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>());
     }
 
 }
