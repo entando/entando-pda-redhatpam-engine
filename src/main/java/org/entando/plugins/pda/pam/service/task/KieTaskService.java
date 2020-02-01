@@ -40,22 +40,25 @@ public class KieTaskService implements TaskService {
     private final KieApiService kieApiService;
 
     @Override
-    public PagedRestResponse<Task> list(Connection connection, AuthenticatedUser user, PagedListRequest request) {
+    public PagedRestResponse<Task> list(Connection connection, AuthenticatedUser user, PagedListRequest request,
+            String filter) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
 
-        List<Task> result = queryTasks(client, connection, user, request);
+        List<Task> result = queryTasks(client, connection, user, request, filter);
         return createPagedResponse(client, connection, user, request, result);
     }
 
     private List<Task> queryTasks(UserTaskServicesClient client, Connection connection, AuthenticatedUser user,
-            PagedListRequest request) {
+            PagedListRequest request, String filter) {
 
         if (request.getPage() < PAGE_START) {
             throw new KieInvalidPageStart();
         }
 
+        String searchFilter = filter == null ? "" : filter.replace("*", "%");
+
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
-        return client.findTasksAssignedAsPotentialOwner(username, new ArrayList<>(), new ArrayList<>(),
+        return client.findTasksAssignedAsPotentialOwner(username, searchFilter, new ArrayList<>(),
                 request.getPage() - 1, request.getPageSize(),
                 convertSortProperty(request.getSort()), !request.getDirection().equals(Filter.DESC_ORDER))
                 .stream()
@@ -71,7 +74,7 @@ public class KieTaskService implements TaskService {
 
         int lastPage = LAST_PAGE_FALSE;
         if (result.size() != request.getPageSize()
-                || queryTasks(client, connection, user, nextPageRequest).isEmpty()) {
+                || queryTasks(client, connection, user, nextPageRequest, null).isEmpty()) {
             lastPage = LAST_PAGE_TRUE;
         }
 

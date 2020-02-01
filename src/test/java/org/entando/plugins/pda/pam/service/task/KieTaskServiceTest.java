@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.entando.keycloak.security.AuthenticatedUser;
@@ -74,12 +75,32 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,
                 request.getPage(), request.getPageSize(),
                 PagedListRequest.SORT_VALUE_DEFAULT, PagedListRequest.DIRECTION_VALUE_DEFAULT);
+    }
+
+    @Test
+    public void shouldSearchTaskList() {
+        // Given
+        List<TaskSummary> expected = Collections.singletonList(KieTaskTestHelper.createKieTaskList().get(0));
+        PagedListRequest request = new PagedListRequest();
+        Connection connection = getDummyConnection();
+        AuthenticatedUser user = null;
+        String filter = "* 1";
+
+        mockTaskList(anyString(), expected);
+
+        // When
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, filter);
+
+        // Then
+        verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,
+                request.getPage(), request.getPageSize(),
+                PagedListRequest.SORT_VALUE_DEFAULT, PagedListRequest.DIRECTION_VALUE_DEFAULT, filter);
     }
 
     @Test
@@ -94,7 +115,7 @@ public class KieTaskServiceTest {
         mockTaskList(eq(username), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username);
@@ -112,7 +133,7 @@ public class KieTaskServiceTest {
         mockTaskList(eq(username), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username);
@@ -129,7 +150,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), firstPage, lastPage);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null);
 
         // Then
         verifyTaskListResult(response, 2, firstPage, KieTaskService.LAST_PAGE_FALSE);
@@ -146,7 +167,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), firstPage, lastPage);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null);
 
         // Then
         verifyTaskListResult(response, 2, firstPage, KieTaskService.LAST_PAGE_TRUE);
@@ -162,7 +183,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), lastPage);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null);
 
         // Then
         verifyTaskListResult(response, 1, lastPage, KieTaskService.LAST_PAGE_TRUE);
@@ -179,7 +200,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, request.getPage(),
@@ -195,7 +216,7 @@ public class KieTaskServiceTest {
         AuthenticatedUser user = getDummyUser();
 
         // When
-        kieTaskService.list(connection, user, request);
+        kieTaskService.list(connection, user, request, null);
     }
 
     @Test
@@ -253,7 +274,7 @@ public class KieTaskServiceTest {
     @SafeVarargs
     private final void mockTaskList(String username, List<TaskSummary>... pages) {
         OngoingStubbing<List<TaskSummary>> stub = when(
-                taskClient.findTasksAssignedAsPotentialOwner(username, anyList(), anyList(), anyInt(), anyInt(),
+                taskClient.findTasksAssignedAsPotentialOwner(username, anyString(), anyList(), anyInt(), anyInt(),
                         anyString(), anyBoolean()));
 
         for (List<TaskSummary> taskSummaries : pages) {
@@ -268,21 +289,31 @@ public class KieTaskServiceTest {
 
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
             int lastPage, Integer page, Integer pageSize, String sort, String direction) {
-        verifyTaskListResult(response, calls, expected, lastPage, null, page, pageSize, sort, direction);
+        verifyTaskListResult(response, calls, expected, lastPage, null, page, pageSize, sort, direction, null);
+    }
+
+    private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
+            int lastPage, Integer page, Integer pageSize, String sort, String direction, String filter) {
+        verifyTaskListResult(response, calls, expected, lastPage, null, page, pageSize, sort, direction,
+                filter);
     }
 
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
             int lastPage, String username) {
-        verifyTaskListResult(response, calls, expected, lastPage, username, null, null, null, null);
+        verifyTaskListResult(response, calls, expected, lastPage, username, null, null, null,
+                null, null);
     }
 
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     private void verifyTaskListResult(PagedRestResponse<Task> response, int calls, List<TaskSummary> expected,
-            int lastPage, String username, Integer page, Integer pageSize, String sort, String direction) {
+            int lastPage, String username, Integer page, Integer pageSize, String sort, String direction,
+            String filter) {
 
         verify(taskClient, times(calls))
                 .findTasksAssignedAsPotentialOwner(
                         username == null ? anyString() : eq(username),
-                        anyList(), anyList(),
+                        filter == null ? eq("") : eq(filter.replace("*", "%")),
+                        anyList(),
                         page == null ? anyInt() : eq(page - 1),
                         pageSize == null ? anyInt() : eq(pageSize),
                         sort == null ? anyString() : eq(KieTask.SORT_PROPERTIES.get(sort)),
