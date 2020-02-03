@@ -1,6 +1,7 @@
 package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.plugins.pda.pam.service.process.KieProcessService.MAX_KIE_PAGE_SIZE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -72,7 +73,7 @@ public class KieProcessServiceTest {
     @Test
     public void shouldListProcessDefinitions() throws Exception {
         // Given
-        PagedListRequest pageRequest = new PagedListRequest(1, KieProcessService.MAX_KIE_PAGE_SIZE, null, null);
+        PagedListRequest pageRequest = new PagedListRequest(1, MAX_KIE_PAGE_SIZE, null, null);
         mockProcessDefinitionList(pageRequest);
 
         pageRequest.setPage(2);
