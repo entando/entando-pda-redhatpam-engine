@@ -17,7 +17,7 @@ import org.kie.server.client.UIServicesClient;
 import org.kie.server.client.UserTaskServicesClient;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("KieApiService")
 public class KieApiService {
 
     public static final String PDA_GROUPS = "pdaGroups";
