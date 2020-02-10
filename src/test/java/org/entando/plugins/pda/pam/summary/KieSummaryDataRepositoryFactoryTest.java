@@ -10,12 +10,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 
-public class KieSummaryDataTypeFactoryTest {
+public class KieSummaryDataRepositoryFactoryTest {
 
     @Test
-    public void shouldLoadDataTypes() {
+    public void shouldLoadDataRepositories() {
         //Given
-        KieSummaryDataTypeFactory factory = new KieSummaryDataTypeFactory();
+        KieSummaryDataRepositoryFactory factory = new KieSummaryDataRepositoryFactory();
         BeanDefinitionRegistry registry = mock(BeanDefinitionRegistry.class);
 
         //When
@@ -23,6 +23,6 @@ public class KieSummaryDataTypeFactoryTest {
 
         //Then
         verify(registry, times(2))
-                .registerBeanDefinition(matches("Kie(.*)DataType"), any(BeanDefinition.class));
+                .registerBeanDefinition(matches("Kie(.*)DataRepository"), any(BeanDefinition.class));
     }
 }

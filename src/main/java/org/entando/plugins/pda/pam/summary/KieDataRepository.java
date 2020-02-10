@@ -16,9 +16,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.SummaryFrequencyInvalidException;
-import org.entando.plugins.pda.core.model.summary.PeriodicSummary;
+import org.entando.plugins.pda.core.model.summary.PeriodicData;
 import org.entando.plugins.pda.core.model.summary.SummaryFrequency;
-import org.entando.plugins.pda.core.service.summary.DataType;
+import org.entando.plugins.pda.core.service.summary.DataRepository;
 import org.entando.plugins.pda.pam.engine.KieEngine;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.kie.server.api.model.definition.QueryDefinition;
@@ -29,7 +29,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 @Slf4j
 @Getter
-public class KieDataType implements DataType {
+public class KieDataRepository implements DataRepository {
     private KieApiService kieApiService;
 
     private String id;
@@ -42,27 +42,27 @@ public class KieDataType implements DataType {
     public static final String PDA_MONTHS_PREFIX = "pda-months-";
     public static final String PDA_YEARS_PREFIX = "pda-years-";
 
-    public static final String DAYS_QUERY_PROPERTY_KEY = "org.entando.pda.summary.%s.query.days";
-    public static final String MONTHS_QUERY_PROPERTY_KEY = "org.entando.pda.summary.%s.query.months";
-    public static final String YEARS_QUERY_PROPERTY_KEY = "org.entando.pda.summary.%s.query.years";
+    public static final String DAYS_QUERY_PROPERTY_KEY = "org.entando.pda.summary.query.days";
+    public static final String MONTHS_QUERY_PROPERTY_KEY = "org.entando.pda.summary.query.months";
+    public static final String YEARS_QUERY_PROPERTY_KEY = "org.entando.pda.summary.query.years";
 
     private static final String KIE_SERVER_PERSISTENCE_DS = "${org.kie.server.persistence.ds}";
     private static final String CUSTOM_TARGET = "CUSTOM";
 
-    public KieDataType(KieApiService kieApiService, String name) {
+    public KieDataRepository(KieApiService kieApiService, String name) {
         try {
             this.kieApiService = kieApiService;
             this.id = name.toLowerCase();
 
-            Resource resource = new ClassPathResource(String.format("summary/datatypes/%s.properties",
+            Resource resource = new ClassPathResource(String.format("summary/datarepositories/%s.properties",
                     id));
             Properties props = PropertiesLoaderUtils.loadProperties(resource);
 
-            this.daysQuery = props.getProperty(String.format(DAYS_QUERY_PROPERTY_KEY, id));
-            this.monthsQuery = props.getProperty(String.format(MONTHS_QUERY_PROPERTY_KEY, id));
-            this.yearsQuery = props.getProperty(String.format(YEARS_QUERY_PROPERTY_KEY, id));
+            this.daysQuery = props.getProperty(DAYS_QUERY_PROPERTY_KEY);
+            this.monthsQuery = props.getProperty(MONTHS_QUERY_PROPERTY_KEY);
+            this.yearsQuery = props.getProperty(YEARS_QUERY_PROPERTY_KEY);
         } catch (IOException e) {
-            log.error("Error loading DataType config file: {}", id, e);
+            log.error("Error loading DataRepository config file: {}", id, e);
             throw new IllegalArgumentException(e);
         }
     }
@@ -73,7 +73,7 @@ public class KieDataType implements DataType {
     }
 
     @Override
-    public List<PeriodicSummary> getPeriodicSummary(Connection connection, SummaryFrequency frequency,
+    public List<PeriodicData> getPeriodicData(Connection connection, SummaryFrequency frequency,
             Integer periods) {
 
         QueryServicesClient queryClient = kieApiService.getQueryServicesClient(connection);
@@ -115,14 +115,14 @@ public class KieDataType implements DataType {
         return queryName;
     }
 
-    private List<PeriodicSummary> buildSeries(List<List> data, SummaryFrequency frequency, Integer periods) {
+    private List<PeriodicData> buildSeries(List<List> data, SummaryFrequency frequency, Integer periods) {
         List<LocalDate> dateSeries = mapDateData(frequency, periods);
         Map<LocalDate, List> dataMapped = mapRowData(data, frequency);
 
         return mapSeries(dateSeries, dataMapped);
     }
 
-    private List<PeriodicSummary> mapSeries(List<LocalDate> dateSeries, Map<LocalDate, List> seriesData) {
+    private List<PeriodicData> mapSeries(List<LocalDate> dateSeries, Map<LocalDate, List> seriesData) {
         return dateSeries.stream()
                 .map(date -> {
                     Double value;
@@ -133,7 +133,7 @@ public class KieDataType implements DataType {
                         value = 0.0;
                     }
 
-                    return PeriodicSummary.builder()
+                    return PeriodicData.builder()
                             .date(date)
                             .value(value)
                             .build();
