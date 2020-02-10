@@ -62,7 +62,7 @@ public class KieDataRepository implements DataRepository {
             this.monthsQuery = props.getProperty(MONTHS_QUERY_PROPERTY_KEY);
             this.yearsQuery = props.getProperty(YEARS_QUERY_PROPERTY_KEY);
         } catch (IOException e) {
-            log.error("Error loading DataType config file: {}", id, e);
+            log.error("Error loading DataRepository config file: {}", id, e);
             throw new IllegalArgumentException(e);
         }
     }

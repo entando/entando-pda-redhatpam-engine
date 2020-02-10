@@ -18,9 +18,9 @@ import org.junit.Test;
 import org.kie.server.client.QueryServicesClient;
 
 public class KieDataRepositoryTest {
-    private static final String DATA_TYPE_1 = "datatype1";
+    private static final String TYPE_1 = "datarepository1";
 
-    private KieDataRepository dataType;
+    private KieDataRepository repository;
     private QueryServicesClient queryClient;
 
     @Before
@@ -30,27 +30,27 @@ public class KieDataRepositoryTest {
         KieApiService kieApiService = mock(KieApiService.class);
         when(kieApiService.getQueryServicesClient(any())).thenReturn(queryClient);
 
-        dataType = new KieDataRepository(kieApiService, DATA_TYPE_1);
+        repository = new KieDataRepository(kieApiService, TYPE_1);
     }
 
     @Test
     public void shouldLoadPropertiesFromConfigFile() {
-        assertThat(dataType.getId()).isEqualTo(DATA_TYPE_1);
-        assertThat(dataType.getEngine()).isEqualTo(KieEngine.TYPE);
+        assertThat(repository.getId()).isEqualTo(TYPE_1);
+        assertThat(repository.getEngine()).isEqualTo(KieEngine.TYPE);
 
-        assertThat(dataType.getDaysQuery()).isNotNull();
-        assertThat(dataType.getMonthsQuery()).isNotNull();
-        assertThat(dataType.getYearsQuery()).isNotNull();
+        assertThat(repository.getDaysQuery()).isNotNull();
+        assertThat(repository.getMonthsQuery()).isNotNull();
+        assertThat(repository.getYearsQuery()).isNotNull();
     }
 
     @Test
     public void shouldFetchSeries() {
         //When
-        dataType.getPeriodicData(getDummyConnection(), SummaryFrequency.ANNUALLY, 5);
+        repository.getPeriodicData(getDummyConnection(), SummaryFrequency.ANNUALLY, 5);
 
         //Then
         verify(queryClient).replaceQuery(any());
-        verify(queryClient).query(eq(PDA_YEARS_PREFIX + DATA_TYPE_1), eq(QueryServicesClient.QUERY_MAP_RAW),
+        verify(queryClient).query(eq(PDA_YEARS_PREFIX + TYPE_1), eq(QueryServicesClient.QUERY_MAP_RAW),
                 eq(0), eq(5), eq(List.class));
     }
 }

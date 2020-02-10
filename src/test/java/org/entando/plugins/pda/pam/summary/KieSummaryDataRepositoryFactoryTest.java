@@ -13,7 +13,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 public class KieSummaryDataRepositoryFactoryTest {
 
     @Test
-    public void shouldLoadDataTypes() {
+    public void shouldLoadDataRepositories() {
         //Given
         KieSummaryDataRepositoryFactory factory = new KieSummaryDataRepositoryFactory();
         BeanDefinitionRegistry registry = mock(BeanDefinitionRegistry.class);
@@ -23,6 +23,6 @@ public class KieSummaryDataRepositoryFactoryTest {
 
         //Then
         verify(registry, times(2))
-                .registerBeanDefinition(matches("Kie(.*)DataType"), any(BeanDefinition.class));
+                .registerBeanDefinition(matches("Kie(.*)DataRepository"), any(BeanDefinition.class));
     }
 }

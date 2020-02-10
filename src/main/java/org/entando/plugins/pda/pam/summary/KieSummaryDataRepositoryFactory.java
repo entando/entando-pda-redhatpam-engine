@@ -20,20 +20,20 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 @Configuration
 public class KieSummaryDataRepositoryFactory implements BeanDefinitionRegistryPostProcessor {
-    private static final String DATA_TYPES_FILENAME = "summary/kie-summary-data-repositories.properties";
-    private static final String DATA_TYPES_PROPERTY_KEY = "org.entando.pda.summary.data.repositories";
-    private static final String KIE_DATA_TYPE_BEAN_NAME = "Kie%sDataType";
+    private static final String DATA_REPOSITORIES_FILENAME = "summary/kie-summary-data-repositories.properties";
+    private static final String DATA_REPOSITORIES_PROPERTY_KEY = "org.entando.pda.summary.data.repositories";
+    private static final String KIE_DATA_REPOSITORY_BEAN_NAME = "Kie%sDataRepository";
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanDefinitionRegistry) {
-        List<String> dataTypes;
+        List<String> repositories;
 
         try {
-            Resource resource = new ClassPathResource(DATA_TYPES_FILENAME);
+            Resource resource = new ClassPathResource(DATA_REPOSITORIES_FILENAME);
             Properties props = PropertiesLoaderUtils.loadProperties(resource);
 
-            dataTypes = Arrays.stream(
-                    Optional.ofNullable(props.getProperty(DATA_TYPES_PROPERTY_KEY))
+            repositories = Arrays.stream(
+                    Optional.ofNullable(props.getProperty(DATA_REPOSITORIES_PROPERTY_KEY))
                             .orElse("")
                             .split(","))
                     .collect(Collectors.toList());
@@ -41,20 +41,20 @@ public class KieSummaryDataRepositoryFactory implements BeanDefinitionRegistryPo
             throw new BeanCreationException("Error loading summary type descriptor file", e);
         }
 
-        for (String type : dataTypes) {
-            registerNewDataTypeBean(beanDefinitionRegistry, type);
+        for (String type : repositories) {
+            registerDataRepositoryBean(beanDefinitionRegistry, type);
         }
     }
 
-    private void registerNewDataTypeBean(BeanDefinitionRegistry registry, String type) {
-        AbstractBeanDefinition dataTypeBean = BeanDefinitionBuilder
+    private void registerDataRepositoryBean(BeanDefinitionRegistry registry, String type) {
+        AbstractBeanDefinition dataRepositoryBean = BeanDefinitionBuilder
                 .genericBeanDefinition(KieDataRepository.class)
                 .setLazyInit(true)
                 .addConstructorArgReference(KieApiService.class.getSimpleName())
                 .addConstructorArgValue(type)
                 .getBeanDefinition();
 
-        registry.registerBeanDefinition(String.format(KIE_DATA_TYPE_BEAN_NAME, type), dataTypeBean);
+        registry.registerBeanDefinition(String.format(KIE_DATA_REPOSITORY_BEAN_NAME, type), dataRepositoryBean);
     }
 
     @Override
