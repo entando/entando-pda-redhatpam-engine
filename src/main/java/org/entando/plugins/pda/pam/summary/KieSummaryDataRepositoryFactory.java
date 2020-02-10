@@ -19,9 +19,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 @Configuration
-public class KieSummaryDataTypeFactory implements BeanDefinitionRegistryPostProcessor {
-    private static final String DATA_TYPES_FILENAME = "summary/kie-summary-data-types.properties";
-    private static final String DATA_TYPES_PROPERTY_KEY = "org.entando.pda.summary.data.types";
+public class KieSummaryDataRepositoryFactory implements BeanDefinitionRegistryPostProcessor {
+    private static final String DATA_TYPES_FILENAME = "summary/kie-summary-data-repositories.properties";
+    private static final String DATA_TYPES_PROPERTY_KEY = "org.entando.pda.summary.data.repositories";
     private static final String KIE_DATA_TYPE_BEAN_NAME = "Kie%sDataType";
 
     @Override
@@ -48,7 +48,7 @@ public class KieSummaryDataTypeFactory implements BeanDefinitionRegistryPostProc
 
     private void registerNewDataTypeBean(BeanDefinitionRegistry registry, String type) {
         AbstractBeanDefinition dataTypeBean = BeanDefinitionBuilder
-                .genericBeanDefinition(KieDataType.class)
+                .genericBeanDefinition(KieDataRepository.class)
                 .setLazyInit(true)
                 .addConstructorArgReference(KieApiService.class.getSimpleName())
                 .addConstructorArgValue(type)

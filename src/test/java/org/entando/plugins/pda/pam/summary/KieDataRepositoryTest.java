@@ -2,7 +2,7 @@ package org.entando.plugins.pda.pam.summary;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
-import static org.entando.plugins.pda.pam.summary.KieDataType.PDA_YEARS_PREFIX;
+import static org.entando.plugins.pda.pam.summary.KieDataRepository.PDA_YEARS_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -17,10 +17,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kie.server.client.QueryServicesClient;
 
-public class KieDataTypeTest {
+public class KieDataRepositoryTest {
     private static final String DATA_TYPE_1 = "datatype1";
 
-    private KieDataType dataType;
+    private KieDataRepository dataType;
     private QueryServicesClient queryClient;
 
     @Before
@@ -30,7 +30,7 @@ public class KieDataTypeTest {
         KieApiService kieApiService = mock(KieApiService.class);
         when(kieApiService.getQueryServicesClient(any())).thenReturn(queryClient);
 
-        dataType = new KieDataType(kieApiService, DATA_TYPE_1);
+        dataType = new KieDataRepository(kieApiService, DATA_TYPE_1);
     }
 
     @Test
@@ -46,7 +46,7 @@ public class KieDataTypeTest {
     @Test
     public void shouldFetchSeries() {
         //When
-        dataType.getPeriodicSummary(getDummyConnection(), SummaryFrequency.ANNUALLY, 5);
+        dataType.getPeriodicData(getDummyConnection(), SummaryFrequency.ANNUALLY, 5);
 
         //Then
         verify(queryClient).replaceQuery(any());
