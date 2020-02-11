@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.experimental.UtilityClass;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
-import org.entando.plugins.pda.core.model.form.FormFieldInteger;
+import org.entando.plugins.pda.core.model.form.FormFieldNumber;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
 import org.entando.plugins.pda.core.model.form.FormFieldText;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
@@ -41,7 +41,7 @@ public class KieProcessFormTestHelper {
         fields.add(fieldSubform1);
         fields.add(fieldSubform2);
 
-        fields.add(FormFieldInteger.builder()
+        fields.add(FormFieldNumber.builder()
                 .id("field_290268943445829E11")
                 .name("downpayment")
                 .label("Down Payment")
@@ -50,7 +50,7 @@ public class KieProcessFormTestHelper {
                 .build()
         );
 
-        fields.add(FormFieldInteger.builder()
+        fields.add(FormFieldNumber.builder()
                 .id("field_0343033866589585E12")
                 .name("amortization")
                 .label("Years of amortization")
@@ -77,7 +77,7 @@ public class KieProcessFormTestHelper {
                 .build()
         );
 
-        fields1.add(FormFieldInteger.builder()
+        fields1.add(FormFieldNumber.builder()
                 .id("field_405154649767496E12")
                 .name("annualincome")
                 .label("Annual Income")
@@ -86,7 +86,7 @@ public class KieProcessFormTestHelper {
                 .build()
         );
 
-        fields1.add(FormFieldInteger.builder()
+        fields1.add(FormFieldNumber.builder()
                 .id("field_670713100411637E11")
                 .name("ssn")
                 .label("SSN")
@@ -96,7 +96,7 @@ public class KieProcessFormTestHelper {
         );
 
         List<FormField> fields2 = new ArrayList<>();
-        fields2.add(FormFieldInteger.builder()
+        fields2.add(FormFieldNumber.builder()
                 .id("field_815717729253767E11")
                 .name("age")
                 .label("Age of property")
@@ -125,7 +125,7 @@ public class KieProcessFormTestHelper {
                 .build()
         );
 
-        fields2.add(FormFieldInteger.builder()
+        fields2.add(FormFieldNumber.builder()
                 .id("field_4113393327260706E12")
                 .name("saleprice")
                 .label("Sale Price")

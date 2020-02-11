@@ -11,8 +11,8 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
-import org.entando.plugins.pda.core.model.form.FormFieldInteger;
 import org.entando.plugins.pda.core.model.form.FormFieldDate;
+import org.entando.plugins.pda.core.model.form.FormFieldNumber;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
 import org.entando.plugins.pda.core.model.form.FormFieldText;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
@@ -21,6 +21,7 @@ import org.entando.plugins.pda.core.model.form.FormFieldType;
 public class KieFormDeserializer extends StdDeserializer<Form> {
 
     private static final String INTEGER_TYPE = "IntegerBox";
+    private static final String DOUBLE_TYPE = "DecimalBox";
     private static final String STRING_TYPE = "TextBox";
     private static final String BOOLEAN_TYPE = "CheckBox";
     private static final String DATE_TYPE = "DatePicker";
@@ -92,8 +93,8 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                     fieldBuilder = FormFieldText.builder()
                             .maxLength(getInteger(field, "maxLength"))
                             .minLength(getInteger(field, "minLength"));
-                } else if (FormFieldType.INTEGER == type) {
-                    fieldBuilder = FormFieldInteger.builder()
+                } else if (FormFieldType.INTEGER == type || FormFieldType.DOUBLE == type) {
+                    fieldBuilder = FormFieldNumber.builder()
                             .maxValue(getInteger(field, "maxValue"))
                             .minValue(getInteger(field, "minValue"));
                 } else if (FormFieldType.DATE == type) {
@@ -183,6 +184,8 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                 return FormFieldType.STRING;
             case BOOLEAN_TYPE:
                 return FormFieldType.BOOLEAN;
+            case DOUBLE_TYPE:
+                return FormFieldType.DOUBLE;
             case DATE_TYPE:
                 return FormFieldType.DATE;
             case SUBFORM_TYPE:
