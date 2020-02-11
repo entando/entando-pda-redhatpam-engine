@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
 import org.entando.plugins.pda.core.model.form.FormFieldInteger;
+import org.entando.plugins.pda.core.model.form.FormFieldDate;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
 import org.entando.plugins.pda.core.model.form.FormFieldText;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
@@ -22,6 +23,7 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
     private static final String INTEGER_TYPE = "IntegerBox";
     private static final String STRING_TYPE = "TextBox";
     private static final String BOOLEAN_TYPE = "CheckBox";
+    private static final String DATE_TYPE = "DatePicker";
     private static final String SUBFORM_TYPE = "SubForm";
 
     public KieFormDeserializer() {
@@ -94,6 +96,9 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                     fieldBuilder = FormFieldInteger.builder()
                             .maxValue(getInteger(field, "maxValue"))
                             .minValue(getInteger(field, "minValue"));
+                } else if (FormFieldType.DATE == type) {
+                    fieldBuilder = FormFieldDate.builder()
+                            .withTime(getBoolean(field, "showTime"));
                 } else if (FormFieldType.SUBFORM == type) {
                     fieldBuilder = FormFieldSubForm.builder()
                             .formId(getString(field, "binding"))
@@ -119,7 +124,7 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
 
         return Form.builder()
                 .id(getString(json,"model.name"))
-                .name(getString(json, "name"))
+                .name(getString(json, "model.processName"))
                 .type(getString(json, "model.className"))
                 .fields(fields)
                 .build();
@@ -178,6 +183,8 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                 return FormFieldType.STRING;
             case BOOLEAN_TYPE:
                 return FormFieldType.BOOLEAN;
+            case DATE_TYPE:
+                return FormFieldType.DATE;
             case SUBFORM_TYPE:
                 return FormFieldType.SUBFORM;
             default:
