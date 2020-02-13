@@ -8,11 +8,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
 import org.entando.plugins.pda.core.model.form.FormFieldDate;
 import org.entando.plugins.pda.core.model.form.FormFieldNumber;
+import org.entando.plugins.pda.core.model.form.FormFieldSelector;
+import org.entando.plugins.pda.core.model.form.FormFieldSelector.Option;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
 import org.entando.plugins.pda.core.model.form.FormFieldText;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
@@ -23,8 +27,14 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
     private static final String INTEGER_TYPE = "IntegerBox";
     private static final String DOUBLE_TYPE = "DecimalBox";
     private static final String STRING_TYPE = "TextBox";
+    private static final String TEXT_TYPE = "TextArea";
     private static final String BOOLEAN_TYPE = "CheckBox";
     private static final String DATE_TYPE = "DatePicker";
+    private static final String SLIDER_TYPE = "Slider";
+    private static final String RADIO_TYPE = "RadioGroup";
+    private static final String MULTIPLE_SELECTOR_TYPE = "MultipleSelector";
+    private static final String COMBO_TYPE = "ListBox";
+    private static final String INPUT_LIST_TYPE = "MultipleInput";
     private static final String SUBFORM_TYPE = "SubForm";
 
     public KieFormDeserializer() {
@@ -92,14 +102,43 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                 if (FormFieldType.STRING == type) {
                     fieldBuilder = FormFieldText.builder()
                             .maxLength(getInteger(field, "maxLength"))
-                            .minLength(getInteger(field, "minLength"));
+                            .minLength(getInteger(field, "minLength"))
+                            .minLength(getInteger(field, "rows"));
                 } else if (FormFieldType.INTEGER == type || FormFieldType.DOUBLE == type) {
                     fieldBuilder = FormFieldNumber.builder()
-                            .maxValue(getInteger(field, "maxValue"))
-                            .minValue(getInteger(field, "minValue"));
+                            .maxValue(getDouble(field, "maxValue"))
+                            .minValue(getDouble(field, "minValue"));
+                } else if (FormFieldType.SLIDER == type) {
+                    fieldBuilder = FormFieldNumber.builder()
+                            .maxValue(getDouble(field, "max"))
+                            .minValue(getDouble(field, "min"))
+                            .multipleOf(getDouble(field, "step"));
                 } else if (FormFieldType.DATE == type) {
                     fieldBuilder = FormFieldDate.builder()
                             .withTime(getBoolean(field, "showTime"));
+                } else if (FormFieldType.RADIO == type || FormFieldType.COMBO == type) {
+                    Iterable<JsonNode> iterable = () -> getArrayNode(field, "options").elements();
+
+                    fieldBuilder = FormFieldSelector.builder()
+                            .defaultValue(getString(field, "defaultValue"))
+                            .multiple(MULTIPLE_SELECTOR_TYPE.equals(getString(field, "code")))
+                            .options(StreamSupport.stream(iterable.spliterator(), false)
+                                    .map(node -> Option.builder()
+                                            .value(getString(node, "value"))
+                                            .label(getString(node, "text"))
+                                            .build())
+                                    .collect(Collectors.toList()));
+                } else if (FormFieldType.MULTIPLE == type) {
+                    Iterable<JsonNode> iterable = () -> getArrayNode(field, "listOfValues").elements();
+
+                    fieldBuilder = FormFieldSelector.builder()
+                            .multiple(MULTIPLE_SELECTOR_TYPE.equals(getString(field, "code")))
+                            .options(StreamSupport.stream(iterable.spliterator(), false)
+                                    .map(node -> Option.builder()
+                                            .value(node.asText())
+                                            .label(node.asText())
+                                            .build())
+                                    .collect(Collectors.toList()));
                 } else if (FormFieldType.SUBFORM == type) {
                     fieldBuilder = FormFieldSubForm.builder()
                             .formId(getString(field, "binding"))
@@ -158,6 +197,10 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
         return fetched;
     }
 
+    private ArrayNode getArrayNode(JsonNode node, String label) {
+        return (ArrayNode) getNode(node, label);
+    }
+
     private String getString(JsonNode node, String label) {
         JsonNode value = getNode(node, label);
         return value == null ? null : value.asText();
@@ -166,6 +209,11 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
     private Integer getInteger(JsonNode node, String label) {
         JsonNode value = getNode(node, label);
         return value == null ? null : value.asInt();
+    }
+
+    private Double getDouble(JsonNode node, String label) {
+        JsonNode value = getNode(node, label);
+        return value == null ? null : value.asDouble();
     }
 
     private Boolean getBoolean(JsonNode node, String label) {
@@ -180,16 +228,27 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
         switch (className) {
             case INTEGER_TYPE:
                 return FormFieldType.INTEGER;
+            case DOUBLE_TYPE:
+                return FormFieldType.DOUBLE;
+            case TEXT_TYPE:
             case STRING_TYPE:
                 return FormFieldType.STRING;
             case BOOLEAN_TYPE:
                 return FormFieldType.BOOLEAN;
-            case DOUBLE_TYPE:
-                return FormFieldType.DOUBLE;
             case DATE_TYPE:
                 return FormFieldType.DATE;
+            case SLIDER_TYPE:
+                return FormFieldType.SLIDER;
             case SUBFORM_TYPE:
                 return FormFieldType.SUBFORM;
+            case RADIO_TYPE:
+                return FormFieldType.RADIO;
+            case MULTIPLE_SELECTOR_TYPE:
+                return FormFieldType.MULTIPLE;
+            case COMBO_TYPE:
+                return FormFieldType.COMBO;
+            case INPUT_LIST_TYPE:
+                return FormFieldType.INPUT_LIST;
             default:
                 throw new IllegalArgumentException();
         }
