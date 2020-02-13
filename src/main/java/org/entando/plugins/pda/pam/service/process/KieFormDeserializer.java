@@ -37,6 +37,31 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
     private static final String INPUT_LIST_TYPE = "MultipleInput";
     private static final String SUBFORM_TYPE = "SubForm";
 
+    private static final String MAX_LENGTH = "maxLength";
+    private static final String MIN_LENGTH = "minLength";
+    private static final String ROWS = "rows";
+    private static final String MAX_VALUE = "maxValue";
+    private static final String MIN_VALUE = "minValue";
+    private static final String MAX = "max";
+    private static final String MIN = "min";
+    private static final String STEP = "step";
+    private static final String SHOW_TIME = "showTime";
+    private static final String OPTIONS = "options";
+    private static final String DEFAULT_VALUE = "defaultValue";
+    private static final String CODE = "code";
+    private static final String VALUE = "value";
+    private static final String TEXT = "text";
+    private static final String LIST_OF_VALUES = "listOfValues";
+    private static final String BINDING = "binding";
+    private static final String STANDALONE_CLASS_NAME = "standaloneClassName";
+    private static final String ID = "id";
+    private static final String NAME = "name";
+    private static final String LABEL = "label";
+    private static final String REQUIRED = "required";
+    private static final String READ_ONLY = "readOnly";
+    private static final String PLACE_HOLDER = "placeHolder";
+    private static final String FIELDS = "fields";
+
     public KieFormDeserializer() {
         this(null);
     }
@@ -88,8 +113,9 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
         return result.get(0);
     }
 
+    @SuppressWarnings("PMD.CyclomaticComplexity")
     private Form deserialize(JsonNode json) {
-        JsonNode fieldsNode = json.get("fields");
+        JsonNode fieldsNode = json.get(FIELDS);
 
         List<FormField> fields = new ArrayList<>();
 
@@ -101,38 +127,38 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
 
                 if (FormFieldType.STRING == type) {
                     fieldBuilder = FormFieldText.builder()
-                            .maxLength(getInteger(field, "maxLength"))
-                            .minLength(getInteger(field, "minLength"))
-                            .minLength(getInteger(field, "rows"));
+                            .maxLength(getInteger(field, MAX_LENGTH))
+                            .minLength(getInteger(field, MIN_LENGTH))
+                            .rows(getInteger(field, ROWS));
                 } else if (FormFieldType.INTEGER == type || FormFieldType.DOUBLE == type) {
                     fieldBuilder = FormFieldNumber.builder()
-                            .maxValue(getDouble(field, "maxValue"))
-                            .minValue(getDouble(field, "minValue"));
+                            .maxValue(getDouble(field, MAX_VALUE))
+                            .minValue(getDouble(field, MIN_VALUE));
                 } else if (FormFieldType.SLIDER == type) {
                     fieldBuilder = FormFieldNumber.builder()
-                            .maxValue(getDouble(field, "max"))
-                            .minValue(getDouble(field, "min"))
-                            .multipleOf(getDouble(field, "step"));
+                            .maxValue(getDouble(field, MAX))
+                            .minValue(getDouble(field, MIN))
+                            .multipleOf(getDouble(field, STEP));
                 } else if (FormFieldType.DATE == type) {
                     fieldBuilder = FormFieldDate.builder()
-                            .withTime(getBoolean(field, "showTime"));
+                            .withTime(getBoolean(field, SHOW_TIME));
                 } else if (FormFieldType.RADIO == type || FormFieldType.COMBO == type) {
-                    Iterable<JsonNode> iterable = () -> getArrayNode(field, "options").elements();
+                    Iterable<JsonNode> iterable = () -> getArrayNode(field, OPTIONS).elements();
 
                     fieldBuilder = FormFieldSelector.builder()
-                            .defaultValue(getString(field, "defaultValue"))
-                            .multiple(MULTIPLE_SELECTOR_TYPE.equals(getString(field, "code")))
+                            .defaultValue(getString(field, DEFAULT_VALUE))
+                            .multiple(MULTIPLE_SELECTOR_TYPE.equals(getString(field, CODE)))
                             .options(StreamSupport.stream(iterable.spliterator(), false)
                                     .map(node -> Option.builder()
-                                            .value(getString(node, "value"))
-                                            .label(getString(node, "text"))
+                                            .value(getString(node, VALUE))
+                                            .label(getString(node, TEXT))
                                             .build())
                                     .collect(Collectors.toList()));
                 } else if (FormFieldType.MULTIPLE == type) {
-                    Iterable<JsonNode> iterable = () -> getArrayNode(field, "listOfValues").elements();
+                    Iterable<JsonNode> iterable = () -> getArrayNode(field, LIST_OF_VALUES).elements();
 
                     fieldBuilder = FormFieldSelector.builder()
-                            .multiple(MULTIPLE_SELECTOR_TYPE.equals(getString(field, "code")))
+                            .multiple(MULTIPLE_SELECTOR_TYPE.equals(getString(field, CODE)))
                             .options(StreamSupport.stream(iterable.spliterator(), false)
                                     .map(node -> Option.builder()
                                             .value(node.asText())
@@ -141,30 +167,30 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                                     .collect(Collectors.toList()));
                 } else if (FormFieldType.SUBFORM == type) {
                     fieldBuilder = FormFieldSubForm.builder()
-                            .formId(getString(field, "binding"))
-                            .formType(getString(field, "standaloneClassName"));
+                            .formId(getString(field, BINDING))
+                            .formType(getString(field, STANDALONE_CLASS_NAME));
                 } else {
                     fieldBuilder = FormField.builder();
                 }
 
                 fields.add(
                         fieldBuilder
-                                .id(getString(field, "id"))
+                                .id(getString(field, ID))
                                 .type(type)
-                                .name(getString(field, "name"))
-                                .label(getString(field, "label"))
-                                .required(getBoolean(field, "required"))
-                                .readOnly(getBoolean(field, "readOnly"))
-                                .placeholder(getString(field, "placeHolder"))
+                                .name(getString(field, NAME))
+                                .label(getString(field, LABEL))
+                                .required(getBoolean(field, REQUIRED))
+                                .readOnly(getBoolean(field, READ_ONLY))
+                                .placeholder(getString(field, PLACE_HOLDER))
                                 .build());
             } catch (IllegalArgumentException e) {
-                log.error("Invalid field Type: {}", field.get("code").asText(), e);
+                log.error("Invalid field Type: {}", field.get(CODE).asText(), e);
             }
         }
 
         return Form.builder()
                 .id(getString(json,"model.name"))
-                .name(getString(json, "model.processName"))
+                .name(getString(json, "name"))
                 .type(getString(json, "model.className"))
                 .fields(fields)
                 .build();
@@ -221,6 +247,7 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
         return value != null && value.asBoolean();
     }
 
+    @SuppressWarnings("PMD.CyclomaticComplexity")
     private FormFieldType getType(JsonNode node) {
 
         String className = node.get("code").asText();

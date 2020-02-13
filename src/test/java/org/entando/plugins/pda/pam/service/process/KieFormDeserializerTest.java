@@ -21,14 +21,20 @@ public class KieFormDeserializerTest {
     }
 
     @Test
-    public void shouldDeserializeProcessKieJsonToForm() throws Exception {
-        Form result = MAPPER.readValue(readFromFile("process-form.json"), Form.class);
-        assertThat(result).isEqualTo(KieProcessFormTestHelper.createProcessForm());
+    public void shouldDeserializeMortgageProcessKieJsonToForm() throws Exception {
+        Form result = MAPPER.readValue(readFromFile("form/process-form-mortgage.json"), Form.class);
+        assertThat(result).isEqualTo(KieProcessFormTestHelper.createMortgageProcessForm());
+    }
+
+    @Test
+    public void shouldDeserializeSampleProcessKieJsonToForm() throws Exception {
+        Form result = MAPPER.readValue(readFromFile("form/process-form-sample.json"), Form.class);
+        assertThat(result).isEqualTo(KieProcessFormTestHelper.createSampleProcessForm());
     }
 
     @Test
     public void shouldDeserializeTaskKieJsonToForms() throws Exception {
-        Form result = MAPPER.readValue(readFromFile("task-form.json"), Form.class);
+        Form result = MAPPER.readValue(readFromFile("form/task-form.json"), Form.class);
         assertThat(result).isEqualTo(KieTaskFormTestHelper.createTaskForm());
     }
 }

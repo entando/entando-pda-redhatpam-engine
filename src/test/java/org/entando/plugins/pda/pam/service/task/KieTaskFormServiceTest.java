@@ -42,9 +42,9 @@ public class KieTaskFormServiceTest {
     private UserTaskServicesClient taskServicesClient;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String TASK_FORM_JSON = "task-form.json";
-    private static final String SUBMIT_TASK_FORM_JSON = "task-form-submission.json";
-    private static final String KIE_SUBMIT_TASK_FORM_JSON = "kie-task-form-submission.json";
+    private static final String TASK_FORM_JSON = "form/task-form.json";
+    private static final String SUBMIT_TASK_FORM_JSON = "form/task-form-submission.json";
+    private static final String KIE_SUBMIT_TASK_FORM_JSON = "form/kie-task-form-submission.json";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
