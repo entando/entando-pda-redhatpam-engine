@@ -43,6 +43,7 @@ import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.api.model.instance.TaskSummary;
 import org.kie.server.client.UserTaskServicesClient;
 import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 
 @SuppressWarnings({"PMD.TooManyMethods", "PMD.ExcessiveImports"})
@@ -61,7 +62,7 @@ public class KieTaskServiceTest {
 
         when(kieApiService.getUserTaskServicesClient(any())).thenReturn(taskClient);
 
-        kieTaskService = new KieTaskService(kieApiService);
+        kieTaskService = new KieTaskService(kieApiService, new RestTemplateBuilder());
     }
 
     @Test
@@ -75,7 +76,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,
@@ -95,7 +96,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, filter);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, filter, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE,
@@ -115,7 +116,7 @@ public class KieTaskServiceTest {
         mockTaskList(eq(username), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username);
@@ -133,7 +134,7 @@ public class KieTaskServiceTest {
         mockTaskList(eq(username), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, username);
@@ -150,7 +151,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), firstPage, lastPage);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null, null);
 
         // Then
         verifyTaskListResult(response, 2, firstPage, KieTaskService.LAST_PAGE_FALSE);
@@ -167,7 +168,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), firstPage, lastPage);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null, null);
 
         // Then
         verifyTaskListResult(response, 2, firstPage, KieTaskService.LAST_PAGE_TRUE);
@@ -183,7 +184,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), lastPage);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, null, request, null, null);
 
         // Then
         verifyTaskListResult(response, 1, lastPage, KieTaskService.LAST_PAGE_TRUE);
@@ -200,7 +201,7 @@ public class KieTaskServiceTest {
         mockTaskList(anyString(), expected);
 
         // When
-        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null);
+        PagedRestResponse<Task> response = kieTaskService.list(connection, user, request, null, null);
 
         // Then
         verifyTaskListResult(response, 1, expected, KieTaskService.LAST_PAGE_TRUE, request.getPage(),
@@ -216,7 +217,7 @@ public class KieTaskServiceTest {
         AuthenticatedUser user = getDummyUser();
 
         // When
-        kieTaskService.list(connection, user, request, null);
+        kieTaskService.list(connection, user, request, null, null);
     }
 
     @Test
