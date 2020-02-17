@@ -36,9 +36,14 @@ public class KieProcessFormServiceTest {
     private ProcessServicesClient processServicesClient;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String PROCESS_FORM_JSON = "process-form.json";
-    private static final String SUBMIT_PROCESS_FORM_JSON = "process-form-submission.json";
-    private static final String KIE_SUBMIT_PROCESS_FORM_JSON = "kie-process-form-submission.json";
+
+    private static final String PROCESS_FORM_JSON_1 = "form/process-form-mortgage.json";
+    private static final String SUBMIT_PROCESS_FORM_JSON_1 = "form/process-form-submission-mortgage.json";
+    private static final String KIE_SUBMIT_PROCESS_FORM_JSON_1 = "form/kie-process-form-submission-mortgage.json";
+
+    private static final String PROCESS_FORM_JSON_2 = "form/process-form-sample.json";
+    private static final String SUBMIT_PROCESS_FORM_JSON_2 = "form/process-form-submission-sample.json";
+    private static final String KIE_SUBMIT_PROCESS_FORM_JSON_2 = "form/kie-process-form-submission-sample.json";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -58,14 +63,33 @@ public class KieProcessFormServiceTest {
     }
 
     @Test
-    public void shouldGetProcessForm() {
+    public void shouldGetMortgageProcessForm() {
 
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
-        Form expected = KieProcessFormTestHelper.createProcessForm();
+        Form expected = KieProcessFormTestHelper.createMortgageProcessForm();
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
-            .thenReturn(readFromFile(PROCESS_FORM_JSON));
+            .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
+
+        // When
+        Form result = kieProcessFormService.get(connection, processId.toString());
+
+        // Then
+        assertThat(result).isEqualTo(expected);
+        verify(uiServicesClient)
+                .getProcessForm(processId.getContainerId(), processId.getDefinitionId());
+    }
+
+    @Test
+    public void shouldGetSampleProcessForm() {
+
+        KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
+
+        // Given
+        Form expected = KieProcessFormTestHelper.createSampleProcessForm();
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+                .thenReturn(readFromFile(PROCESS_FORM_JSON_2));
 
         // When
         Form result = kieProcessFormService.get(connection, processId.toString());
@@ -88,15 +112,15 @@ public class KieProcessFormServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void shouldSubmitProcessForm() throws Exception {
+    public void shouldSubmitMortgageProcessForm() throws Exception {
 
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
         Map<String, Object> request = MAPPER.readValue(
-                readFromFile(SUBMIT_PROCESS_FORM_JSON), Map.class);
+                readFromFile(SUBMIT_PROCESS_FORM_JSON_1), Map.class);
         Map<String, Object> kieRequest = MAPPER.readValue(
-                readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON), Map.class);
+                readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON_1), Map.class);
 
         Long expected = randomLongId();
 
@@ -104,7 +128,36 @@ public class KieProcessFormServiceTest {
                 .thenReturn(expected);
 
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON));
+                .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
+
+        // When
+        String result = kieProcessFormService.submit(connection, processId.toString(), request);
+
+        // Then
+        assertThat(result).isEqualTo(expected.toString());
+        verify(processServicesClient)
+                .startProcess(processId.getContainerId(), processId.getDefinitionId(), kieRequest);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldSubmitSampleProcessForm() throws Exception {
+
+        KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
+
+        // Given
+        Map<String, Object> request = MAPPER.readValue(
+                readFromFile(SUBMIT_PROCESS_FORM_JSON_2), Map.class);
+        Map<String, Object> kieRequest = MAPPER.readValue(
+                readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON_2), Map.class);
+
+        Long expected = randomLongId();
+
+        when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
+                .thenReturn(expected);
+
+        when(uiServicesClient.getProcessForm(anyString(), anyString()))
+                .thenReturn(readFromFile(PROCESS_FORM_JSON_2));
 
         // When
         String result = kieProcessFormService.submit(connection, processId.toString(), request);
@@ -118,7 +171,7 @@ public class KieProcessFormServiceTest {
     @Test
     public void shouldThrowNotFoundWhenSubmitProcessFormWithInvalidProcessDefinitionId() {
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON));
+                .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
@@ -131,7 +184,7 @@ public class KieProcessFormServiceTest {
     @Test
     public void shouldThrowNotFoundWhenSubmitProcessFormWithInvalidContainerId() {
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON));
+                .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
