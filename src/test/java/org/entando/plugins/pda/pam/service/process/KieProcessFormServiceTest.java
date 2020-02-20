@@ -2,6 +2,8 @@ package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.PROCESS_DEFINITION_ID;
+import static org.entando.plugins.pda.core.utils.TestUtils.createFullProcessForm;
+import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleProcessForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -18,7 +20,6 @@ import org.entando.plugins.pda.core.exception.ProcessDefinitionNotFoundException
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
-import org.entando.plugins.pda.pam.util.KieProcessFormTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,13 +38,13 @@ public class KieProcessFormServiceTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final String PROCESS_FORM_JSON_1 = "form/process-form-mortgage.json";
-    private static final String SUBMIT_PROCESS_FORM_JSON_1 = "form/process-form-submission-mortgage.json";
-    private static final String KIE_SUBMIT_PROCESS_FORM_JSON_1 = "form/kie-process-form-submission-mortgage.json";
+    private static final String PROCESS_FORM_JSON_1 = "form/simple-process-form.json";
+    private static final String SUBMIT_PROCESS_FORM_JSON_1 = "form/simple-process-form-submission.json";
+    private static final String KIE_SUBMIT_PROCESS_FORM_JSON_1 = "form/simple-kie-process-form-submission.json";
 
-    private static final String PROCESS_FORM_JSON_2 = "form/process-form-sample.json";
-    private static final String SUBMIT_PROCESS_FORM_JSON_2 = "form/process-form-submission-sample.json";
-    private static final String KIE_SUBMIT_PROCESS_FORM_JSON_2 = "form/kie-process-form-submission-sample.json";
+    private static final String PROCESS_FORM_JSON_2 = "form/full-process-form.json";
+    private static final String SUBMIT_PROCESS_FORM_JSON_2 = "form/full-process-form-submission.json";
+    private static final String KIE_SUBMIT_PROCESS_FORM_JSON_2 = "form/full-kie-process-form-submission.json";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -63,12 +64,12 @@ public class KieProcessFormServiceTest {
     }
 
     @Test
-    public void shouldGetMortgageProcessForm() {
+    public void shouldGetSimpleProcessForm() {
 
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
-        Form expected = KieProcessFormTestHelper.createMortgageProcessForm();
+        Form expected = createSimpleProcessForm();
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
             .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
@@ -82,12 +83,12 @@ public class KieProcessFormServiceTest {
     }
 
     @Test
-    public void shouldGetSampleProcessForm() {
+    public void shouldGetFullProcessForm() {
 
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
-        Form expected = KieProcessFormTestHelper.createSampleProcessForm();
+        Form expected = createFullProcessForm();
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
                 .thenReturn(readFromFile(PROCESS_FORM_JSON_2));
 

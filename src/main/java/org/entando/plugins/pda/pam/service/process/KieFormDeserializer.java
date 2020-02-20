@@ -36,6 +36,8 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
     private static final String COMBO_TYPE = "ListBox";
     private static final String INPUT_LIST_TYPE = "MultipleInput";
     private static final String SUBFORM_TYPE = "SubForm";
+    private static final String DOCUMENT_TYPE = "Document";
+    private static final String DOCUMENT_LIST_TYPE = "DocumentCollection";
 
     private static final String MAX_LENGTH = "maxLength";
     private static final String MIN_LENGTH = "minLength";
@@ -276,6 +278,10 @@ public class KieFormDeserializer extends StdDeserializer<Form> {
                 return FormFieldType.COMBO;
             case INPUT_LIST_TYPE:
                 return FormFieldType.INPUT_LIST;
+            case DOCUMENT_TYPE:
+                return FormFieldType.DOCUMENT;
+            case DOCUMENT_LIST_TYPE:
+                return FormFieldType.DOCUMENT_LIST;
             default:
                 throw new IllegalArgumentException();
         }
