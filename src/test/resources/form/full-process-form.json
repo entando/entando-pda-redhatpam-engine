@@ -696,7 +696,7 @@
     "model": {
       "source": "INTERNAL",
       "className": "com.myspace.forms_sample.MyObject",
-      "name": "MyObject",
+      "name": "myObject",
       "properties": [
         {
           "name": "myString",
