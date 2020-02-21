@@ -72,4 +72,10 @@ public class KieTaskSummaryResponse {
         BeanUtils.copyProperties(this, taskSummary);
         return taskSummary;
     }
+
+    public static KieTaskSummaryResponse fromTaskSummary(TaskSummary taskSummary) {
+        KieTaskSummaryResponse kieTaskSummaryResponse = new KieTaskSummaryResponse();
+        BeanUtils.copyProperties(taskSummary, kieTaskSummaryResponse);
+        return kieTaskSummaryResponse;
+    }
 }

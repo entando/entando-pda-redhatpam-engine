@@ -44,7 +44,15 @@ public class KieTaskService implements TaskService {
     public static final int LAST_PAGE_TRUE = 1;
     public static final int LAST_PAGE_FALSE = 0;
     public static final int SIMPLE_NAVIGATION = -1;
-    private static final String POT_OWNERS_ENDPOINT = "/queries/tasks/instances/pot-owners";
+    public static final String POT_OWNERS_ENDPOINT = "/queries/tasks/instances/pot-owners";
+
+    public static final String USER_PARAM = "user";
+    public static final String SORT_ORDER_PARAM = "sortOrder";
+    public static final String PAGE_SIZE_PARAM = "pageSize";
+    public static final String PAGE_PARAM = "page";
+    public static final String FILTER_PARAM = "filter";
+    public static final String SORT_PARAM = "sort";
+    public static final String GROUPS_PARAM = "groups";
 
     private final KieApiService kieApiService;
     private final RestTemplateBuilder restTemplateBuilder;
@@ -84,18 +92,18 @@ public class KieTaskService implements TaskService {
             List<String> groups) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder
                 .fromHttpUrl(connection.getUrl() + POT_OWNERS_ENDPOINT)
-                .queryParam("page", request.getPage() - 1)
-                .queryParam("pageSize", request.getPageSize())
-                .queryParam("sortOrder", !request.getDirection().equals(Filter.DESC_ORDER))
-                .queryParam("user", username);
+                .queryParam(PAGE_PARAM, request.getPage() - 1)
+                .queryParam(PAGE_SIZE_PARAM, request.getPageSize())
+                .queryParam(SORT_ORDER_PARAM, !request.getDirection().equals(Filter.DESC_ORDER))
+                .queryParam(USER_PARAM, username);
         if (StringUtils.isNotBlank(request.getSort())) {
-            uriComponentsBuilder.queryParam("sort", convertSortProperty(request.getSort()));
+            uriComponentsBuilder.queryParam(SORT_PARAM, convertSortProperty(request.getSort()));
         }
         if (!CollectionUtils.isEmpty(groups)) {
-            uriComponentsBuilder.queryParam("groups", Iterables.toArray(groups, String.class));
+            uriComponentsBuilder.queryParam(GROUPS_PARAM, Iterables.toArray(groups, String.class));
         }
         if (StringUtils.isNotBlank(filter)) {
-            uriComponentsBuilder.queryParam("filter", filter);
+            uriComponentsBuilder.queryParam(FILTER_PARAM, filter);
         }
         return uriComponentsBuilder.build(false).toUriString();
     }
