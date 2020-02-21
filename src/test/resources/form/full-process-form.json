@@ -842,7 +842,7 @@
         "placeHolder": "My Integer",
         "maxLength": 200,
         "id": "field_5437",
-        "name": "__unbound_field_field_5437",
+        "name": "myInteger",
         "label": "My Integer",
         "required": false,
         "readOnly": false,

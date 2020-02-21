@@ -1,17 +1,13 @@
 package org.entando.plugins.pda.pam.service.util;
 
-import java.io.IOException;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
@@ -19,11 +15,6 @@ import org.entando.plugins.pda.core.model.form.FormFieldType;
 import org.entando.web.exception.BadRequestException;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
-import org.jbpm.document.Document;
-import org.jbpm.document.DocumentCollection;
-import org.jbpm.document.service.impl.DocumentCollectionImpl;
-import org.jbpm.document.service.impl.DocumentImpl;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @UtilityClass
@@ -79,51 +70,50 @@ public class KieUtils {
     }
 
     private Map<String, Object> convertFileList(List<String> rawDocuments) {
-        Map<String, Object> documents = new HashMap<String, Object>() {{
-            put("documents", rawDocuments.stream()
-                    .map(KieUtils::convertFile)
-                    .collect(Collectors.toList()));
-        }};
+        Map<String, Object> documents = new ConcurrentHashMap<>();
+        documents.put("documents", rawDocuments.stream()
+                .map(KieUtils::convertFile)
+                .collect(Collectors.toList()));
 
-        return new HashMap<String, Object>() {{
-            put("org.jbpm.document.service.impl.DocumentCollectionImpl", documents);
-        }};
+
+        Map<String, Object> result = new ConcurrentHashMap<>();
+        result.put("org.jbpm.document.service.impl.DocumentCollectionImpl", documents);
+        return result;
     }
 
     private Map<String, Object> convertFile(String rawData) {
         String[] split = rawData.split(";");
         String type = null;
         String name = null;
-        byte[] data = null;
-        String identifier = UUID.randomUUID().toString();
-        Map<String, String> attributes = new HashMap<>();
+        String data = "";
+        int size = 0;
+        Map<String, String> attributes = new ConcurrentHashMap<>();
 
         for (String property : split) {
             if (property.startsWith("data:")) {
                 type = property.replace("data:", "");
             } else if (property.startsWith("name=")) {
-                name = property.replace("name=", "");
+                name = property.replace("name=", "").replace("%20", " ");
             } else if (property.startsWith("base64,")) {
-                data = Base64.getDecoder().decode(property.replace("base64,", ""));
+                data = property.replace("base64,", "");
+                size = Base64.getDecoder().decode(data).length;
             }
         }
-
-        long size = data == null ? 0 : data.length;
 
         if (type != null) {
             attributes.put("content-type", type);
         }
 
-        Map<String, Object> document = new HashMap<>();
+        Map<String, Object> document = new ConcurrentHashMap<>();
         document.put("lastModified", new Date());
         document.put("name", name);
         document.put("size", size);
         document.put("content", data);
         document.put("attributes", attributes);
 
-        return new HashMap<String, Object>() {{
-            put("org.jbpm.document.service.impl.DocumentImpl", document);
-        }};
+        Map<String, Object> result = new ConcurrentHashMap<>();
+        result.put("org.jbpm.document.service.impl.DocumentImpl", document);
+        return result;
     }
 
 }
