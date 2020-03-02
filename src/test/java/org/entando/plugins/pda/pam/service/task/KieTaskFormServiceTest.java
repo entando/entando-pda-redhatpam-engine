@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
+import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskFormTestHelper;
@@ -94,11 +95,11 @@ public class KieTaskFormServiceTest {
     }
 
     @Test
-    public void shouldThrowTaskNotFoundWhenGetFormWithInvalidContainerId() {
+    public void shouldThrowKieInvalidResponseWhenGetFormWithInvalidContainerId() {
         KieInstanceId taskId = new KieInstanceId(randomStringId(), randomLongId());
 
         //Given
-        expectedException.expect(TaskNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
@@ -148,11 +149,11 @@ public class KieTaskFormServiceTest {
     }
 
     @Test
-    public void shouldThrowNotFoundWhenSubmitFormWithInvalidContainerId() {
+    public void shouldThrowKieInvalidResponseWhenSubmitFormWithInvalidContainerId() {
         //Given
         KieInstanceId taskId = new KieInstanceId(randomStringId(), randomLongId());
 
-        expectedException.expect(TaskNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
                 .thenReturn(readFromFile(TASK_FORM_JSON));

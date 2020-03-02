@@ -21,6 +21,7 @@ import org.entando.plugins.pda.core.model.Comment;
 import org.entando.plugins.pda.core.service.task.TaskCommentService;
 import org.entando.plugins.pda.core.service.task.request.CreateCommentRequest;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
+import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
@@ -169,13 +170,13 @@ public class KieTaskCommentServiceTest {
     }
 
     @Test
-    public void shouldThrowNotFoundWhenGetTaskInternalErrorResponse() {
+    public void shouldThrowKieInvalidResponseWhenGetTaskInternalErrorResponse() {
         // Given
         when(userTaskServicesClient.getTaskCommentById(any(), anyLong(), anyLong()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
 
         // Then
-        expectedException.expect(CommentNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         // When
         kieTaskService.getComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
@@ -195,13 +196,13 @@ public class KieTaskCommentServiceTest {
     }
 
     @Test
-    public void shouldThrowNotFoundWhenDeleteInternalErrorResponse() {
+    public void shouldThrowKieInvalidResponseWhenDeleteInternalErrorResponse() {
         // Given
         doThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null))
                 .when(userTaskServicesClient).deleteTaskComment(any(), anyLong(), anyLong());
 
         // Then
-        expectedException.expect(CommentNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         // When
         kieTaskService.deleteComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);

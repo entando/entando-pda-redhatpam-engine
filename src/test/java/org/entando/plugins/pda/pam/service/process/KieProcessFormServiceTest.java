@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessDefinitionNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
+import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.junit.Before;
@@ -191,14 +192,14 @@ public class KieProcessFormServiceTest {
     }
 
     @Test
-    public void shouldThrowNotFoundWhenSubmitProcessFormWithInvalidContainerId() {
+    public void shouldThrowKieInvalidResponseWhenSubmitProcessFormWithInvalidContainerId() {
         when(uiServicesClient.getProcessForm(anyString(), anyString()))
                 .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
 
-        expectedException.expect(ProcessDefinitionNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>());
     }
