@@ -118,7 +118,7 @@ public class KieTaskCommentServiceTest {
 
         // Then
         verify(customQueryService).getGroups(connection, groupName);
-        assertThat(comment.getCreatedBy()).isEqualTo(KieTaskCommentService.PDA_PREFIX + groupName);
+        assertThat(comment.getCreatedBy()).isEqualTo(KieTaskCommentService.PDA_USER_PREFIX + groupName);
     }
 
     @Test

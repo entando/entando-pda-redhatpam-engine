@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KieTaskCommentService implements TaskCommentService {
 
-    public static final String PDA_PREFIX = "pda_";
+    public static final String PDA_USER_PREFIX = "user_";
 
     private final KieApiService kieApiService;
     private final CustomQueryService customQueryService;
@@ -84,7 +84,7 @@ public class KieTaskCommentService implements TaskCommentService {
             // add prefix if username clashes with group name
             List<String> groups = customQueryService.getGroups(connection, createdBy);
             if (CollectionUtils.isNotEmpty(groups)) {
-                createdBy = PDA_PREFIX + createdBy; //NOPMD: String concatenation is better here
+                createdBy = PDA_USER_PREFIX + createdBy; //NOPMD: String concatenation is better here
             }
             Long commentId = client.addTaskComment(taskId.getContainerId(), taskId.getInstanceId(),
                     request.getComment(), createdBy, createdAt);
