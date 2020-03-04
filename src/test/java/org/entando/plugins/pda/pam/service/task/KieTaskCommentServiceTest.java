@@ -12,13 +12,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.CommentNotFoundException;
 import org.entando.plugins.pda.core.model.Comment;
 import org.entando.plugins.pda.core.service.task.TaskCommentService;
 import org.entando.plugins.pda.core.service.task.request.CreateCommentRequest;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
+import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
+import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
@@ -30,6 +34,7 @@ import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.client.UserTaskServicesClient;
 import org.springframework.http.HttpStatus;
 
+@SuppressWarnings("PMD.TooManyMethods")
 public class KieTaskCommentServiceTest {
 
     private static final String TASK_1 = "1@c1";
@@ -37,6 +42,7 @@ public class KieTaskCommentServiceTest {
 
     private TaskCommentService kieTaskService;
     private UserTaskServicesClient userTaskServicesClient;
+    private CustomQueryService customQueryService;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -48,7 +54,9 @@ public class KieTaskCommentServiceTest {
 
         when(kieApiService.getUserTaskServicesClient(any())).thenReturn(userTaskServicesClient);
 
-        kieTaskService = new KieTaskCommentService(kieApiService);
+        customQueryService = mock(CustomQueryService.class);
+
+        kieTaskService = new KieTaskCommentService(kieApiService, customQueryService);
     }
 
     @Test
@@ -59,8 +67,8 @@ public class KieTaskCommentServiceTest {
         List<Comment> expectedResponse = KieTaskTestHelper.createKieTaskComments(KieTaskTestHelper.TASK_ID_1);
         when(userTaskServicesClient.getTaskCommentsByTaskId(anyString(), anyLong()))
                 .thenReturn(expectedResponse.stream()
-                .map(KieTaskCommentService::commentToDto)
-                .collect(Collectors.toList()));
+                        .map(KieTaskCommentService::commentToDto)
+                        .collect(Collectors.toList()));
 
         // When
         List<Comment> comments = kieTaskService.listComments(getDummyConnection(),
@@ -91,6 +99,26 @@ public class KieTaskCommentServiceTest {
         verify(userTaskServicesClient)
                 .addTaskComment(eq(taskId.getContainerId()), eq(taskId.getInstanceId()), eq(expected.getText()),
                         eq(KieTaskTestHelper.TASK_COMMENT_OWNER_2), any());
+    }
+
+    @Test
+    public void shouldAddPrefixToCreatedByWhenItClashesWithExistingGroupName() {
+        // Given
+        KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_2, KieTaskTestHelper.TASK_ID_2);
+        Comment expected = KieTaskTestHelper.createKieTaskComment();
+        CreateCommentRequest request = CreateCommentRequest.builder().comment(expected.getText()).build();
+        when(userTaskServicesClient.addTaskComment(any(), anyLong(), anyString(), anyString(), any()))
+                .thenReturn(Long.valueOf(KieTaskTestHelper.TASK_COMMENT_ID_2_2));
+        Connection connection = getDummyConnection();
+        String groupName = "admin";
+        when(customQueryService.getGroups(connection, groupName)).thenReturn(Collections.singletonList(groupName));
+
+        // When
+        Comment comment = kieTaskService.createComment(connection, getDummyUser(groupName), taskId.toString(), request);
+
+        // Then
+        verify(customQueryService).getGroups(connection, groupName);
+        assertThat(comment.getCreatedBy()).isEqualTo(KieTaskCommentService.PDA_USER_PREFIX + groupName);
     }
 
     @Test
@@ -142,13 +170,13 @@ public class KieTaskCommentServiceTest {
     }
 
     @Test
-    public void shouldThrowNotFoundWhenGetTaskInternalErrorResponse() {
+    public void shouldThrowKieInvalidResponseWhenGetTaskInternalErrorResponse() {
         // Given
         when(userTaskServicesClient.getTaskCommentById(any(), anyLong(), anyLong()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
 
         // Then
-        expectedException.expect(CommentNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         // When
         kieTaskService.getComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);
@@ -168,13 +196,13 @@ public class KieTaskCommentServiceTest {
     }
 
     @Test
-    public void shouldThrowNotFoundWhenDeleteInternalErrorResponse() {
+    public void shouldThrowKieInvalidResponseWhenDeleteInternalErrorResponse() {
         // Given
         doThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null))
                 .when(userTaskServicesClient).deleteTaskComment(any(), anyLong(), anyLong());
 
         // Then
-        expectedException.expect(CommentNotFoundException.class);
+        expectedException.expect(KieInvalidResponseException.class);
 
         // When
         kieTaskService.deleteComment(getDummyConnection(), null, TASK_1, TASK_COMMENT_1_1);

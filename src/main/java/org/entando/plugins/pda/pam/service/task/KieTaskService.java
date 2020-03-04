@@ -142,9 +142,7 @@ public class KieTaskService implements TaskService {
 
             return KieTaskDetails.from(task);
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
 
