@@ -5,14 +5,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.CommentNotFoundException;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Comment;
-import org.entando.plugins.pda.core.request.CreateCommentRequest;
 import org.entando.plugins.pda.core.service.task.TaskCommentService;
+import org.entando.plugins.pda.core.service.task.request.CreateCommentRequest;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
+import org.entando.plugins.pda.pam.service.api.CustomQueryService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.kie.server.api.exception.KieServicesHttpException;
@@ -26,7 +28,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KieTaskCommentService implements TaskCommentService {
 
+    public static final String PDA_USER_PREFIX = "user_";
+
     private final KieApiService kieApiService;
+    private final CustomQueryService customQueryService;
 
     @Override
     public List<Comment> list(Connection connection, AuthenticatedUser user, String id) {
@@ -39,9 +44,7 @@ public class KieTaskCommentService implements TaskCommentService {
                     .map(KieTaskCommentService::dtoToComment)
                     .collect(Collectors.toList());
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
 
@@ -60,9 +63,7 @@ public class KieTaskCommentService implements TaskCommentService {
 
             return dtoToComment(comment);
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new CommentNotFoundException(e);
             }
 
@@ -80,6 +81,11 @@ public class KieTaskCommentService implements TaskCommentService {
         Date createdAt = new Date();
 
         try {
+            // add prefix if username clashes with group name
+            List<String> groups = customQueryService.getGroups(connection, createdBy);
+            if (CollectionUtils.isNotEmpty(groups)) {
+                createdBy = PDA_USER_PREFIX + createdBy; //NOPMD: String concatenation is better here
+            }
             Long commentId = client.addTaskComment(taskId.getContainerId(), taskId.getInstanceId(),
                     request.getComment(), createdBy, createdAt);
 
@@ -90,12 +96,9 @@ public class KieTaskCommentService implements TaskCommentService {
                     .createdBy(createdBy)
                     .build();
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
-
             throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
         }
     }
@@ -109,9 +112,7 @@ public class KieTaskCommentService implements TaskCommentService {
             client.deleteTaskComment(taskId.getContainerId(), taskId.getInstanceId(), Long.valueOf(commentId));
             return commentId;
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new CommentNotFoundException(e);
             }
 
