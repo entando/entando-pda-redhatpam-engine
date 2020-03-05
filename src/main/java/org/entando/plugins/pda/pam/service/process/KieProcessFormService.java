@@ -68,9 +68,7 @@ public class KieProcessFormService implements ProcessFormService {
             return client.startProcess(id.getContainerId(), id.getDefinitionId(), variables)
                     .toString();
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new ProcessDefinitionNotFoundException(e);
             }
 
