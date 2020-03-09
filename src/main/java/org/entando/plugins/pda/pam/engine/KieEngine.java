@@ -8,18 +8,21 @@ import org.entando.plugins.pda.pam.service.process.KieProcessService;
 import org.entando.plugins.pda.pam.service.task.KieTaskCommentService;
 import org.entando.plugins.pda.pam.service.task.KieTaskDefinitionService;
 import org.entando.plugins.pda.pam.service.task.KieTaskFormService;
+import org.entando.plugins.pda.pam.service.task.KieTaskLifecycleService;
 import org.entando.plugins.pda.pam.service.task.KieTaskService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KieEngine extends Engine {
+
     public static final String TYPE = "pam";
 
     @Builder
     public KieEngine(KieTaskService taskService, KieTaskDefinitionService taskDefinitionService,
             KieTaskCommentService taskCommentService, KieTaskFormService taskTaskFormService,
-            KieProcessService processService, KieProcessFormService processFormService, KieGroupService groupService) {
-        super(TYPE, taskService, taskDefinitionService, taskCommentService, taskTaskFormService, processService,
-                processFormService, groupService);
+            KieTaskLifecycleService kieTaskLifecycleService, KieProcessService processService,
+            KieProcessFormService processFormService, KieGroupService groupService) {
+        super(TYPE, taskService, taskDefinitionService, taskCommentService, taskTaskFormService,
+                kieTaskLifecycleService, processService, processFormService, groupService);
     }
 }
