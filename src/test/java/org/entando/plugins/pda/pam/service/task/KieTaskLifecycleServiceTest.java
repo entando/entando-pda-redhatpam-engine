@@ -15,6 +15,7 @@ import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
+import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.junit.Before;
@@ -62,12 +63,26 @@ public class KieTaskLifecycleServiceTest {
     }
 
     @Test
-    public void shouldHandleKieServiceHttpExceptionWith404() {
+    public void shouldHandleKieServiceHttpExceptionOnClaimWith404() {
         // Given
         expectedException.expect(TaskNotFoundException.class);
         KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
                 RandomStringUtils.randomNumeric(5));
         doThrow(new KieServicesHttpException("not found", HttpStatus.NOT_FOUND.value(), "", ""))
+                .when(taskServicesClient).claimTask(anyString(), anyLong(), anyString());
+
+        // When
+        kieTaskLifecycleService
+                .claim(getDummyConnection(), getDummyUser(TEST_USERNAME), taskId.toString());
+    }
+
+    @Test
+    public void shouldHandleKieServiceHttpExceptionOnClaimWith500() {
+        // Given
+        expectedException.expect(KieInvalidResponseException.class);
+        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
+                RandomStringUtils.randomNumeric(5));
+        doThrow(new KieServicesHttpException("internal error", HttpStatus.INTERNAL_SERVER_ERROR.value(), "", ""))
                 .when(taskServicesClient).claimTask(anyString(), anyLong(), anyString());
 
         // When
@@ -148,7 +163,8 @@ public class KieTaskLifecycleServiceTest {
                 .complete(getDummyConnection(), getDummyUser(TEST_USERNAME), taskId.toString());
 
         // Then
-        verify(taskServicesClient).completeTask(taskId.getContainerId(), taskId.getInstanceId(), TEST_USERNAME, null);
+        verify(taskServicesClient)
+                .completeTask(taskId.getContainerId(), taskId.getInstanceId(), TEST_USERNAME, Collections.emptyMap());
         assertThat(taskResult.getId()).isEqualTo(taskId.toString());
     }
 }
