@@ -1,10 +1,11 @@
 package org.entando.plugins.pda.pam.service.task;
 
-import java.io.IOException;
+import static org.entando.plugins.pda.pam.service.util.KieDocument.KIE_DOCUMENT_TYPE;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.keycloak.security.AuthenticatedUser;
@@ -16,21 +17,21 @@ import org.entando.plugins.pda.core.request.CreateAttachmentRequest;
 import org.entando.plugins.pda.core.service.task.TaskAttachmentService;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.util.KieDocument;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.web.exception.BadRequestException;
-import org.entando.web.exception.InternalServerException;
 import org.kie.server.api.exception.KieServicesHttpException;
+import org.kie.server.api.model.instance.DocumentInstance;
 import org.kie.server.api.model.instance.TaskAttachment;
+import org.kie.server.client.DocumentServicesClient;
 import org.kie.server.client.UserTaskServicesClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class KieTaskAttachmentService implements TaskAttachmentService {
-
     private final KieApiService kieApiService;
 
     @Override
@@ -44,9 +45,7 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
                     .map(KieTaskAttachmentService::dtoToAttachment)
                     .collect(Collectors.toList());
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
 
@@ -65,9 +64,7 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
 
             return dtoToAttachment(attachment);
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new AttachmentNotFoundException(e);
             }
 
@@ -82,27 +79,22 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 
-        MultipartFile file = Optional.ofNullable(request.getFile())
-                .orElseThrow(BadRequestException::new);
+        KieDocument document = new KieDocument(Optional.ofNullable(request.getFile())
+                .orElseThrow(BadRequestException::new));
 
         String createdBy = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
 
         try {
             Long attachmentId = client.addTaskAttachment(taskId.getContainerId(), taskId.getInstanceId(),
-                    createdBy, file.getOriginalFilename(), file.getBytes());
+                    createdBy, document.getFilename(), document.getPayload());
 
             return get(connection, user, id, attachmentId.toString());
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
 
             throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
-        } catch (IOException e) {
-            log.error("Error reading file", e);
-            throw new InternalServerException(e.getMessage(), e);
         }
     }
 
@@ -115,9 +107,7 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
             client.deleteTaskAttachment(taskId.getContainerId(), taskId.getInstanceId(), Long.valueOf(attachmentId));
             return attachmentId;
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new AttachmentNotFoundException(e);
             }
 
@@ -125,23 +115,21 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public byte[] file(Connection connection, HttpServletResponse response, AuthenticatedUser user, String id,
-            String attachmentId) {
+    public byte[] download(Connection connection, AuthenticatedUser user, String id, String attachmentId) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
+        DocumentServicesClient documentClient = kieApiService.getDocumentServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 
-        response.setContentType("application/jpeg");
-        response.setHeader("Content-Type", "application/jpeg");
-        response.addHeader("Content-Type", "application/jpeg");
-
         try {
-            return (byte[]) client.getTaskAttachmentContentById(taskId.getContainerId(), taskId.getInstanceId(),
-                    Long.valueOf(attachmentId));
+            KieDocument documentDetails = new KieDocument((Map<String, Object>) client.getTaskAttachmentContentById(
+                    taskId.getContainerId(), taskId.getInstanceId(), Long.valueOf(attachmentId)));
+
+            DocumentInstance document = documentClient.getDocument(documentDetails.getId());
+            return document.getContent();
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new AttachmentNotFoundException(e);
             }
 
@@ -155,7 +143,7 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
                 .name(attachment.getName())
                 .createdAt(attachment.getAddedAt())
                 .createdBy(attachment.getAddedBy())
-                .type(attachment.getContentType())
+                //.type(attachment.getContentType()) //Kie API doesn't provide any way to know the file type
                 .size(attachment.getSize().longValue())
                 .build();
     }
@@ -166,7 +154,7 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
                 .name(attachment.getName())
                 .addedAt(attachment.getCreatedAt())
                 .addedBy(attachment.getCreatedBy())
-                .contentType(attachment.getType())
+                .contentType(KIE_DOCUMENT_TYPE)
                 .size(attachment.getSize().intValue())
                 .build();
     }

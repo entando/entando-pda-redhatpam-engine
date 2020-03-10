@@ -1,6 +1,10 @@
 package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.plugins.pda.core.utils.TestUtils.CONTAINER_ID_1;
+import static org.entando.plugins.pda.core.utils.TestUtils.CONTAINER_ID_2;
+import static org.entando.plugins.pda.core.utils.TestUtils.TASK_ID_1;
+import static org.entando.plugins.pda.core.utils.TestUtils.TASK_ID_2;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,10 +65,10 @@ public class KieTaskCommentServiceTest {
 
     @Test
     public void shouldListTaskComments() throws Exception {
-        KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_1, KieTaskTestHelper.TASK_ID_1);
+        KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_1, TASK_ID_1);
 
         // Given
-        List<Comment> expectedResponse = KieTaskTestHelper.createKieTaskComments(KieTaskTestHelper.TASK_ID_1);
+        List<Comment> expectedResponse = KieTaskTestHelper.createKieTaskComments(TASK_ID_1);
         when(userTaskServicesClient.getTaskCommentsByTaskId(anyString(), anyLong()))
                 .thenReturn(expectedResponse.stream()
                         .map(KieTaskCommentService::commentToDto)
@@ -80,7 +84,7 @@ public class KieTaskCommentServiceTest {
 
     @Test
     public void shouldCreateTaskComment() {
-        KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_2, KieTaskTestHelper.TASK_ID_2);
+        KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_2, TASK_ID_2);
         Comment expected = KieTaskTestHelper.createKieTaskComment();
         CreateCommentRequest request = CreateCommentRequest.builder().comment(expected.getText()).build();
 
@@ -104,7 +108,7 @@ public class KieTaskCommentServiceTest {
     @Test
     public void shouldAddPrefixToCreatedByWhenItClashesWithExistingGroupName() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_2, KieTaskTestHelper.TASK_ID_2);
+        KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_2, TASK_ID_2);
         Comment expected = KieTaskTestHelper.createKieTaskComment();
         CreateCommentRequest request = CreateCommentRequest.builder().comment(expected.getText()).build();
         when(userTaskServicesClient.addTaskComment(any(), anyLong(), anyString(), anyString(), any()))
@@ -114,7 +118,7 @@ public class KieTaskCommentServiceTest {
         when(customQueryService.getGroups(connection, groupName)).thenReturn(Collections.singletonList(groupName));
 
         // When
-        Comment comment = kieTaskService.createComment(connection, getDummyUser(groupName), taskId.toString(), request);
+        Comment comment = kieTaskService.create(connection, getDummyUser(groupName), taskId.toString(), request);
 
         // Then
         verify(customQueryService).getGroups(connection, groupName);
@@ -123,10 +127,10 @@ public class KieTaskCommentServiceTest {
 
     @Test
     public void shouldGetTaskComment() {
-        KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_1, KieTaskTestHelper.TASK_ID_1);
+        KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_1, TASK_ID_1);
 
         // Given
-        Comment expectedComment = KieTaskTestHelper.createKieTaskComments(KieTaskTestHelper.TASK_ID_1).get(0);
+        Comment expectedComment = KieTaskTestHelper.createKieTaskComments(TASK_ID_1).get(0);
         when(userTaskServicesClient.getTaskCommentById(any(), anyLong(), anyLong()))
                 .thenReturn(KieTaskCommentService.commentToDto(expectedComment));
 
@@ -144,14 +148,14 @@ public class KieTaskCommentServiceTest {
 
     @Test
     public void shouldDeleteTaskComment() {
-        KieInstanceId taskId = new KieInstanceId(KieTaskTestHelper.CONTAINER_ID_1, KieTaskTestHelper.TASK_ID_1);
+        KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_1, TASK_ID_1);
 
         // When
         String commentId = kieTaskService.delete(getDummyConnection(), null, taskId.toString(),
                 KieTaskTestHelper.TASK_COMMENT_ID_1_1);
 
         // Then
-        assertThat(commentId).isEqualTo(KieTaskTestHelper.TASK_ID_1.toString());
+        assertThat(commentId).isEqualTo(TASK_ID_1);
         verify(userTaskServicesClient)
                 .deleteTaskComment(taskId.getContainerId(), taskId.getInstanceId(), Long.valueOf(commentId));
     }
