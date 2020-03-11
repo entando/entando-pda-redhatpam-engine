@@ -1,5 +1,7 @@
 package org.entando.plugins.pda.pam.service.task;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
@@ -12,7 +14,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
@@ -50,8 +51,7 @@ public class KieTaskLifecycleServiceTest {
     @Test
     public void shouldClaimTask() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
 
         // When
         Task taskResult = kieTaskLifecycleService
@@ -66,8 +66,7 @@ public class KieTaskLifecycleServiceTest {
     public void shouldHandleKieServiceHttpExceptionOnClaimWith404() {
         // Given
         expectedException.expect(TaskNotFoundException.class);
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
         doThrow(new KieServicesHttpException("not found", HttpStatus.NOT_FOUND.value(), "", ""))
                 .when(taskServicesClient).claimTask(anyString(), anyLong(), anyString());
 
@@ -80,8 +79,7 @@ public class KieTaskLifecycleServiceTest {
     public void shouldHandleKieServiceHttpExceptionOnClaimWith500() {
         // Given
         expectedException.expect(KieInvalidResponseException.class);
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
         doThrow(new KieServicesHttpException("internal error", HttpStatus.INTERNAL_SERVER_ERROR.value(), "", ""))
                 .when(taskServicesClient).claimTask(anyString(), anyLong(), anyString());
 
@@ -93,8 +91,7 @@ public class KieTaskLifecycleServiceTest {
     @Test
     public void shouldUnclaimTask() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
 
         // When
         Task taskResult = kieTaskLifecycleService
@@ -108,8 +105,7 @@ public class KieTaskLifecycleServiceTest {
     @Test
     public void shouldAssignTask() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
         String assignee = "test2";
 
         // When
@@ -125,8 +121,7 @@ public class KieTaskLifecycleServiceTest {
     @Test
     public void shouldStartTask() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
 
         // When
         Task taskResult = kieTaskLifecycleService
@@ -140,8 +135,7 @@ public class KieTaskLifecycleServiceTest {
     @Test
     public void shouldPauseTask() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
 
         // When
         Task taskResult = kieTaskLifecycleService
@@ -155,8 +149,7 @@ public class KieTaskLifecycleServiceTest {
     @Test
     public void shouldCompleteTask() {
         // Given
-        KieInstanceId taskId = new KieInstanceId(RandomStringUtils.randomAlphabetic(10),
-                RandomStringUtils.randomNumeric(5));
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
 
         // When
         Task taskResult = kieTaskLifecycleService
