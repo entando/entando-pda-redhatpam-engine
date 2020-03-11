@@ -123,7 +123,7 @@ public class KieTaskLifecycleBulkService implements TaskLifecycleBulkService {
         ids.forEach(id -> {
             try {
                 KieInstanceId taskId = new KieInstanceId(id);
-                taskServicesClient.stopTask(taskId.getContainerId(), taskId.getInstanceId(), username);
+                taskServicesClient.suspendTask(taskId.getContainerId(), taskId.getInstanceId(), username);
                 result.add(getTaskBulkActionSuccess(id));
             } catch (KieServicesHttpException e) {
                 if (e.getHttpCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
