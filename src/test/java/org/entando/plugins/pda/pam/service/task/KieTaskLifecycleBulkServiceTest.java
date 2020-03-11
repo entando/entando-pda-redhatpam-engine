@@ -260,6 +260,46 @@ public class KieTaskLifecycleBulkServiceTest {
     }
 
     @Test
+    public void shouldBulkResumeTasks() {
+        // When
+        List<TaskBulkActionResponse> responses = taskLifecycleBulkService
+                .bulkResume(getDummyConnection(), getDummyUser(USERNAME), ids);
+
+        // Then
+        ArgumentCaptor<Long> idCaptor = ArgumentCaptor.forClass(Long.class);
+        verify(taskServicesClient, times(ids.size())).resumeTask(eq(CONTAINER_ID), idCaptor.capture(), eq(USERNAME));
+        assertBulkOperation(taskId1, taskId2, taskId3, responses, idCaptor);
+    }
+
+    @Test
+    public void shouldHandleInternalServerErrorOnBulkResume() {
+        // Given
+        doThrow(new KieServicesHttpException(INTERNAL_ERROR_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR.value(), "", ""))
+                .when(taskServicesClient).resumeTask(CONTAINER_ID, taskId1.getInstanceId(), USERNAME);
+
+        // When
+        List<TaskBulkActionResponse> responses = taskLifecycleBulkService
+                .bulkResume(getDummyConnection(), getDummyUser(USERNAME), ids);
+
+        // Then
+        assertResponseWithException(responses, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    public void shouldHandleNotFoundOnBulkResume() {
+        // Given
+        doThrow(new KieServicesHttpException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND.value(), "", ""))
+                .when(taskServicesClient).resumeTask(CONTAINER_ID, taskId1.getInstanceId(), USERNAME);
+
+        // When
+        List<TaskBulkActionResponse> responses = taskLifecycleBulkService
+                .bulkResume(getDummyConnection(), getDummyUser(USERNAME), ids);
+
+        // Then
+        assertResponseWithException(responses, HttpStatus.NOT_FOUND);
+    }
+
+    @Test
     public void shouldBulkCompleteTasks() {
         // When
         List<TaskBulkActionResponse> responses = taskLifecycleBulkService

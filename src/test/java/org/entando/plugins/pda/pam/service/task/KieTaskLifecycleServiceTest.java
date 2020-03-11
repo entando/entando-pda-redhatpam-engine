@@ -147,6 +147,20 @@ public class KieTaskLifecycleServiceTest {
     }
 
     @Test
+    public void shouldResumeTask() {
+        // Given
+        KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));
+
+        // When
+        Task taskResult = kieTaskLifecycleService
+                .resume(getDummyConnection(), getDummyUser(TEST_USERNAME), taskId.toString());
+
+        // Then
+        verify(taskServicesClient).resumeTask(taskId.getContainerId(), taskId.getInstanceId(), TEST_USERNAME);
+        assertThat(taskResult.getId()).isEqualTo(taskId.toString());
+    }
+
+    @Test
     public void shouldCompleteTask() {
         // Given
         KieInstanceId taskId = new KieInstanceId(randomAlphabetic(10), randomNumeric(5));

@@ -138,6 +138,28 @@ public class KieTaskLifecycleBulkService implements TaskLifecycleBulkService {
     }
 
     @Override
+    public List<TaskBulkActionResponse> bulkResume(Connection connection, AuthenticatedUser user, List<String> ids) {
+        UserTaskServicesClient taskServicesClient = kieApiService.getUserTaskServicesClient(connection);
+        String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
+        List<TaskBulkActionResponse> result = new ArrayList<>();
+        ids.forEach(id -> {
+            try {
+                KieInstanceId taskId = new KieInstanceId(id);
+                taskServicesClient.resumeTask(taskId.getContainerId(), taskId.getInstanceId(), username);
+                result.add(getTaskBulkActionSuccess(id));
+            } catch (KieServicesHttpException e) {
+                if (e.getHttpCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
+                    log.error(EXCEPTION_MESSAGE, id, e);
+                } else {
+                    log.debug(EXCEPTION_MESSAGE, id, e);
+                }
+                result.add(TaskExceptionUtil.convertToTaskBulkActionResponse(e, id));
+            }
+        });
+        return result;
+    }
+
+    @Override
     public List<TaskBulkActionResponse> bulkComplete(Connection connection, AuthenticatedUser user, List<String> ids) {
         UserTaskServicesClient taskServicesClient = kieApiService.getUserTaskServicesClient(connection);
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();

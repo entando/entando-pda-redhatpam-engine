@@ -106,6 +106,23 @@ public class KieTaskLifecycleService implements TaskLifecycleService {
     }
 
     @Override
+    public Task resume(Connection connection, AuthenticatedUser user, String id) {
+        try {
+            UserTaskServicesClient taskServicesClient = kieApiService.getUserTaskServicesClient(connection);
+            KieInstanceId taskId = new KieInstanceId(id);
+
+            String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
+            taskServicesClient.resumeTask(taskId.getContainerId(), taskId.getInstanceId(), username);
+            Task result = new Task();
+            result.setId(taskId.toString());
+            return result;
+        } catch (KieServicesHttpException e) {
+            TaskExceptionUtil.handleKieServicesHttpException(e);
+            return null;
+        }
+    }
+
+    @Override
     public Task complete(Connection connection, AuthenticatedUser user, String id) {
         try {
             UserTaskServicesClient taskServicesClient = kieApiService.getUserTaskServicesClient(connection);
