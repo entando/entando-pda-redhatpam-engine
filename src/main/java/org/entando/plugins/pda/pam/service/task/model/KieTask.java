@@ -114,7 +114,7 @@ public class KieTask extends Task {
             case KIE_STATUS_READY:
                 return Status.CREATED;
             case KIE_STATUS_RESERVED:
-                return Status.ASSIGNED;
+                return Status.RESERVED;
             case KIE_STATUS_IN_PROGRESS:
                 return Status.IN_PROGRESS;
             case KIE_STATUS_SUSPENDED:
