@@ -147,7 +147,7 @@ public class KieTaskLifecycleBulkServiceTest {
         // Then
         ArgumentCaptor<Long> idCaptor = ArgumentCaptor.forClass(Long.class);
         verify(taskServicesClient, times(ids.size()))
-                .forwardTask(eq(CONTAINER_ID), idCaptor.capture(), eq(USERNAME), eq(ASSIGNEE));
+                .delegateTask(eq(CONTAINER_ID), idCaptor.capture(), eq(USERNAME), eq(ASSIGNEE));
         assertBulkOperation(taskId1, taskId2, taskId3, responses, idCaptor);
     }
 
@@ -155,7 +155,7 @@ public class KieTaskLifecycleBulkServiceTest {
     public void shouldHandleInternalServerErrorOnBulkAssign() {
         // Given
         doThrow(new KieServicesHttpException(INTERNAL_ERROR_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR.value(), "", ""))
-                .when(taskServicesClient).forwardTask(CONTAINER_ID, taskId1.getInstanceId(), USERNAME, ASSIGNEE);
+                .when(taskServicesClient).delegateTask(CONTAINER_ID, taskId1.getInstanceId(), USERNAME, ASSIGNEE);
 
         // When
         List<TaskBulkActionResponse> responses = taskLifecycleBulkService
@@ -169,7 +169,7 @@ public class KieTaskLifecycleBulkServiceTest {
     public void shouldHandleNotFoundOnBulkAssign() {
         // Given
         doThrow(new KieServicesHttpException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND.value(), "", ""))
-                .when(taskServicesClient).forwardTask(CONTAINER_ID, taskId1.getInstanceId(), USERNAME, ASSIGNEE);
+                .when(taskServicesClient).delegateTask(CONTAINER_ID, taskId1.getInstanceId(), USERNAME, ASSIGNEE);
 
         // When
         List<TaskBulkActionResponse> responses = taskLifecycleBulkService

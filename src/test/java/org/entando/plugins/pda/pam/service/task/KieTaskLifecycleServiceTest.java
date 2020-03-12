@@ -113,8 +113,8 @@ public class KieTaskLifecycleServiceTest {
                 .assign(getDummyConnection(), getDummyUser(TEST_USERNAME), taskId.toString(), assignee);
 
         // Then
-        verify(taskServicesClient).nominateTask(taskId.getContainerId(), taskId.getInstanceId(), TEST_USERNAME,
-                Collections.singletonList(assignee));
+        verify(taskServicesClient)
+                .delegateTask(taskId.getContainerId(), taskId.getInstanceId(), TEST_USERNAME, assignee);
         assertThat(taskResult.getId()).isEqualTo(taskId.toString());
     }
 

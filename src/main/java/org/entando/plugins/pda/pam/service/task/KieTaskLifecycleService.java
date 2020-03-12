@@ -60,8 +60,7 @@ public class KieTaskLifecycleService implements TaskLifecycleService {
             KieInstanceId taskId = new KieInstanceId(id);
 
             String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
-            taskServicesClient.nominateTask(taskId.getContainerId(), taskId.getInstanceId(), username,
-                    Collections.singletonList(assignee));
+            taskServicesClient.delegateTask(taskId.getContainerId(), taskId.getInstanceId(), username, assignee);
             Task result = new Task();
             result.setId(taskId.toString());
             return result;
