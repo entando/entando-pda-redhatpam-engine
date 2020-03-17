@@ -15,6 +15,7 @@ import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
 import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
+import org.entando.plugins.pda.pam.exception.NoConnectionWithKieServerException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
@@ -32,6 +33,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -77,15 +79,19 @@ public class KieTaskService implements TaskService {
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
         String url = getUrl(connection, username, request, filter, groups);
 
-        KieTaskListResponse response = restTemplate.getForObject(url, KieTaskListResponse.class);
-        if (response == null) {
-            return Collections.emptyList();
+        try {
+            KieTaskListResponse response = restTemplate.getForObject(url, KieTaskListResponse.class);
+            if (response == null) {
+                return Collections.emptyList();
+            }
+            return Optional.ofNullable(response.getTaskSummaries()).orElse(Collections.emptyList())
+                    .stream()
+                    .map(KieTaskSummaryResponse::toTaskSummary)
+                    .map(KieTask::from)
+                    .collect(Collectors.toList());
+        } catch (ResourceAccessException e) {
+            throw new NoConnectionWithKieServerException(e);
         }
-        return Optional.ofNullable(response.getTaskSummaries()).orElse(Collections.emptyList())
-                .stream()
-                .map(KieTaskSummaryResponse::toTaskSummary)
-                .map(KieTask::from)
-                .collect(Collectors.toList());
     }
 
     private String getUrl(Connection connection, String username, PagedListRequest request, String filter,

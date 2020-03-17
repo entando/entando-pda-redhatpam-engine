@@ -8,6 +8,7 @@ import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.pam.exception.NoConnectionWithKieServerException;
 import org.kie.server.api.marshalling.MarshallingFormat;
 import org.kie.server.api.model.definition.QueryDefinition;
+import org.kie.server.client.DocumentServicesClient;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.KieServicesConfiguration;
 import org.kie.server.client.KieServicesFactory;
@@ -98,6 +99,15 @@ public class KieApiService {
         try {
             KieServicesClient client = getKieServicesClient(connection);
             return client.getServicesClient(UserTaskServicesClient.class);
+        } catch (RuntimeException e) { //NOPMD client throws generic exception
+            throw new NoConnectionWithKieServerException(e);
+        }
+    }
+
+    public DocumentServicesClient getDocumentServicesClient(Connection connection) {
+        try {
+            KieServicesClient client = getKieServicesClient(connection);
+            return client.getServicesClient(DocumentServicesClient.class);
         } catch (RuntimeException e) { //NOPMD client throws generic exception
             throw new NoConnectionWithKieServerException(e);
         }

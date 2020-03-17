@@ -5,6 +5,7 @@ import org.entando.plugins.pda.core.engine.Engine;
 import org.entando.plugins.pda.pam.service.group.KieGroupService;
 import org.entando.plugins.pda.pam.service.process.KieProcessFormService;
 import org.entando.plugins.pda.pam.service.process.KieProcessService;
+import org.entando.plugins.pda.pam.service.task.KieTaskAttachmentService;
 import org.entando.plugins.pda.pam.service.task.KieTaskCommentService;
 import org.entando.plugins.pda.pam.service.task.KieTaskDefinitionService;
 import org.entando.plugins.pda.pam.service.task.KieTaskFormService;
