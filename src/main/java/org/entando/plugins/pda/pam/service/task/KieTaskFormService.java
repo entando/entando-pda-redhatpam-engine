@@ -47,9 +47,7 @@ public class KieTaskFormService implements TaskFormService {
             String json = client.getTaskForm(taskId.getContainerId(), taskId.getInstanceId());
             return MAPPER.readValue(json, Form.class);
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
             throw new KieInvalidResponseException(HttpStatus.valueOf(e.getHttpCode()), e.getMessage(), e);
@@ -71,9 +69,7 @@ public class KieTaskFormService implements TaskFormService {
             client.saveTaskContent(taskId.getContainerId(), taskId.getInstanceId(), variables);
             return id;
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
 

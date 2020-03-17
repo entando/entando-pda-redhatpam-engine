@@ -5,6 +5,7 @@ import org.entando.plugins.pda.core.engine.Engine;
 import org.entando.plugins.pda.pam.service.group.KieGroupService;
 import org.entando.plugins.pda.pam.service.process.KieProcessFormService;
 import org.entando.plugins.pda.pam.service.process.KieProcessService;
+import org.entando.plugins.pda.pam.service.task.KieTaskAttachmentService;
 import org.entando.plugins.pda.pam.service.task.KieTaskCommentService;
 import org.entando.plugins.pda.pam.service.task.KieTaskDefinitionService;
 import org.entando.plugins.pda.pam.service.task.KieTaskFormService;
@@ -17,9 +18,11 @@ public class KieEngine extends Engine {
 
     @Builder
     public KieEngine(KieTaskService taskService, KieTaskDefinitionService taskDefinitionService,
-            KieTaskCommentService taskCommentService, KieTaskFormService taskTaskFormService,
-            KieProcessService processService, KieProcessFormService processFormService, KieGroupService groupService) {
-        super(TYPE, taskService, taskDefinitionService, taskCommentService, taskTaskFormService, processService,
-                processFormService, groupService);
+            KieTaskCommentService taskCommentService, KieTaskAttachmentService taskAttachmentService,
+            KieTaskFormService taskTaskFormService, KieProcessService processService,
+            KieProcessFormService processFormService, KieGroupService groupService) {
+
+        super(TYPE, taskService, taskDefinitionService, taskCommentService, taskAttachmentService, taskTaskFormService,
+                processService, processFormService, groupService);
     }
 }

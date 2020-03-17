@@ -1,11 +1,13 @@
 package org.entando.plugins.pda.pam.service.task;
 
-import java.util.ArrayList;
+import com.google.common.collect.Iterables;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
@@ -13,9 +15,12 @@ import org.entando.plugins.pda.core.model.Task;
 import org.entando.plugins.pda.core.service.task.TaskService;
 import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
+import org.entando.plugins.pda.pam.exception.NoConnectionWithKieServerException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
+import org.entando.plugins.pda.pam.service.task.model.KieTaskListResponse;
+import org.entando.plugins.pda.pam.service.task.model.KieTaskSummaryResponse;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
@@ -24,8 +29,13 @@ import org.entando.web.response.PagedRestResponse;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.client.UserTaskServicesClient;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Slf4j
@@ -36,45 +46,83 @@ public class KieTaskService implements TaskService {
     public static final int LAST_PAGE_TRUE = 1;
     public static final int LAST_PAGE_FALSE = 0;
     public static final int SIMPLE_NAVIGATION = -1;
+    public static final String POT_OWNERS_ENDPOINT = "/queries/tasks/instances/pot-owners";
+
+    public static final String USER_PARAM = "user";
+    public static final String SORT_ORDER_PARAM = "sortOrder";
+    public static final String PAGE_SIZE_PARAM = "pageSize";
+    public static final String PAGE_PARAM = "page";
+    public static final String FILTER_PARAM = "filter";
+    public static final String SORT_PARAM = "sort";
+    public static final String GROUPS_PARAM = "groups";
 
     private final KieApiService kieApiService;
+    private final RestTemplateBuilder restTemplateBuilder;
 
     @Override
     public PagedRestResponse<Task> list(Connection connection, AuthenticatedUser user, PagedListRequest request,
-            String filter) {
-        UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
-
-        List<Task> result = queryTasks(client, connection, user, request, filter);
-        return createPagedResponse(client, connection, user, request, result);
+            String filter, List<String> groups) {
+        String searchFilter = filter == null ? "" : filter.replace("*", "%");
+        List<Task> result = queryTasks(connection, user, request, searchFilter, groups);
+        return createPagedResponse(connection, user, request, result, searchFilter, groups);
     }
 
-    private List<Task> queryTasks(UserTaskServicesClient client, Connection connection, AuthenticatedUser user,
-            PagedListRequest request, String filter) {
+    private List<Task> queryTasks(Connection connection, AuthenticatedUser user,
+            PagedListRequest request, String filter, List<String> groups) {
 
         if (request.getPage() < PAGE_START) {
             throw new KieInvalidPageStart();
         }
-
-        String searchFilter = filter == null ? "" : filter.replace("*", "%");
-
+        RestTemplate restTemplate = restTemplateBuilder
+                .basicAuthorization(connection.getUsername(), connection.getPassword())
+                .build();
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
-        return client.findTasksAssignedAsPotentialOwner(username, searchFilter, new ArrayList<>(),
-                request.getPage() - 1, request.getPageSize(),
-                convertSortProperty(request.getSort()), !request.getDirection().equals(Filter.DESC_ORDER))
-                .stream()
-                .map(KieTask::from)
-                .collect(Collectors.toList());
+        String url = getUrl(connection, username, request, filter, groups);
+
+        try {
+            KieTaskListResponse response = restTemplate.getForObject(url, KieTaskListResponse.class);
+            if (response == null) {
+                return Collections.emptyList();
+            }
+            return Optional.ofNullable(response.getTaskSummaries()).orElse(Collections.emptyList())
+                    .stream()
+                    .map(KieTaskSummaryResponse::toTaskSummary)
+                    .map(KieTask::from)
+                    .collect(Collectors.toList());
+        } catch (ResourceAccessException e) {
+            throw new NoConnectionWithKieServerException(e);
+        }
     }
 
-    private PagedRestResponse<Task> createPagedResponse(UserTaskServicesClient client, Connection connection,
-            AuthenticatedUser user, PagedListRequest request, List<Task> result) {
+    private String getUrl(Connection connection, String username, PagedListRequest request, String filter,
+            List<String> groups) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder
+                .fromHttpUrl(connection.getUrl() + POT_OWNERS_ENDPOINT)
+                .queryParam(PAGE_PARAM, request.getPage() - 1)
+                .queryParam(PAGE_SIZE_PARAM, request.getPageSize())
+                .queryParam(SORT_ORDER_PARAM, !request.getDirection().equals(Filter.DESC_ORDER))
+                .queryParam(USER_PARAM, username);
+        if (StringUtils.isNotBlank(request.getSort())) {
+            uriComponentsBuilder.queryParam(SORT_PARAM, convertSortProperty(request.getSort()));
+        }
+        if (!CollectionUtils.isEmpty(groups)) {
+            uriComponentsBuilder.queryParam(GROUPS_PARAM, Iterables.toArray(groups, String.class));
+        }
+        if (StringUtils.isNotBlank(filter)) {
+            uriComponentsBuilder.queryParam(FILTER_PARAM, filter);
+        }
+        return uriComponentsBuilder.build(false).toUriString();
+    }
+
+    private PagedRestResponse<Task> createPagedResponse(Connection connection,
+            AuthenticatedUser user, PagedListRequest request, List<Task> result, String filter, List<String> groups) {
 
         PagedListRequest nextPageRequest = new PagedListRequest(request.getPage() + 1, request.getPageSize(),
                 request.getSort(), request.getDirection());
 
         int lastPage = LAST_PAGE_FALSE;
         if (result.size() != request.getPageSize()
-                || queryTasks(client, connection, user, nextPageRequest, null).isEmpty()) {
+                || queryTasks(connection, user, nextPageRequest, filter, groups).isEmpty()) {
             lastPage = LAST_PAGE_TRUE;
         }
 
@@ -100,9 +148,7 @@ public class KieTaskService implements TaskService {
 
             return KieTaskDetails.from(task);
         } catch (KieServicesHttpException e) {
-            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())
-                    //Some endpoints return 500 instead of 404
-                    || e.getHttpCode().equals(HttpStatus.INTERNAL_SERVER_ERROR.value())) {
+            if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new TaskNotFoundException(e);
             }
 

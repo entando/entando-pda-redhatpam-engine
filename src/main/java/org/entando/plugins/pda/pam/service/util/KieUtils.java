@@ -1,8 +1,11 @@
 package org.entando.plugins.pda.pam.service.util;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
@@ -11,6 +14,7 @@ import org.entando.web.exception.BadRequestException;
 import org.entando.web.request.Filter;
 import org.entando.web.request.PagedListRequest;
 
+@Slf4j
 @UtilityClass
 public class KieUtils {
 
@@ -28,7 +32,7 @@ public class KieUtils {
         return queryUrl.toString();
     }
 
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    @SuppressWarnings({ "unchecked", "PMD.AvoidInstantiatingObjectsInLoops" })
     public static Map<String, Object> createFormSubmission(Form form, Map<String, Object> request) {
         Map<String, Object> submission = new ConcurrentHashMap<>();
 
@@ -51,12 +55,28 @@ public class KieUtils {
                 FormFieldSubForm fieldSubForm = (FormFieldSubForm) field;
                 subFormSubmission.put(fieldSubForm.getFormType(),
                         createFormSubmission(fieldSubForm.getForm(), (Map<String, Object>) request.get(key)));
+            } else if (FormFieldType.DOCUMENT == field.getType()) {
+                submission.put(key, new KieDocument((String) entry.getValue()).getPayload());
+            } else if (FormFieldType.DOCUMENT_LIST == field.getType()) {
+                submission.put(key, convertFileList((List<String>) entry.getValue()));
             } else {
                 submission.put(key, entry.getValue());
             }
         }
 
         return submission;
+    }
+
+    public Map<String, Object> convertFileList(List<String> rawDocuments) {
+        Map<String, Object> documents = new ConcurrentHashMap<>();
+        documents.put("documents", rawDocuments.stream()
+                .map(s -> new KieDocument(s).getPayload())
+                .collect(Collectors.toList()));
+
+
+        Map<String, Object> result = new ConcurrentHashMap<>();
+        result.put("org.jbpm.document.service.impl.DocumentCollectionImpl", documents);
+        return result;
     }
 
 }
