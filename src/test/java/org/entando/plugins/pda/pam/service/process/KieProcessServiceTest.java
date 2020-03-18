@@ -1,6 +1,7 @@
 package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
 import static org.entando.plugins.pda.pam.service.process.KieProcessService.MAX_KIE_PAGE_SIZE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,7 +81,7 @@ public class KieProcessServiceTest {
         mockProcessDefinitionList(pageRequest);
 
         // When
-        List<ProcessDefinition> processDefinitions = kieProcessService.listDefinitions(dummyConnection());
+        List<ProcessDefinition> processDefinitions = kieProcessService.listDefinitions(getDummyConnection());
 
         // Then
         mockServer.verify();
@@ -153,16 +154,6 @@ public class KieProcessServiceTest {
                 .andRespond(withSuccess(
                         mapper.writeValueAsString(new KieProcessDefinitionsResponse(expectedResponse)),
                         MediaType.APPLICATION_JSON));
-    }
-
-    private Connection dummyConnection() {
-        return Connection.builder()
-                .username("myUsername")
-                .password("myPassword")
-                .schema("http")
-                .host("myurl")
-                .port("8080")
-                .build();
     }
 
 }

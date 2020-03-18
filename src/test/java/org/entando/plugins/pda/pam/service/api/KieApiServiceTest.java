@@ -142,12 +142,11 @@ public class KieApiServiceTest {
     private Connection getConnection() {
         return Connection.builder()
                 .name("testConnection")
-                .host("localhost")
-                .port(String.valueOf(wireMockRule.port()))
-                .schema("http")
-                .app(KIE_SERVER_PATH)
+                .url("http://localhost:" + wireMockRule.port() + KIE_SERVER_PATH)
                 .username("test")
                 .password("test")
                 .build();
     }
+
+
 }

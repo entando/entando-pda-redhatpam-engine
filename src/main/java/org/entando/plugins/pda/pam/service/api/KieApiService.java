@@ -45,7 +45,8 @@ public class KieApiService {
     private KieServicesClient createKieServicesClient(Connection connection) {
         KieServicesClient kieServicesClient;
         KieServicesConfiguration configuration = KieServicesFactory
-                .newRestConfiguration(connection.getUrl(), connection.getUsername(), connection.getPassword());
+                .newRestConfiguration(connection.getUrl(), connection.getUsername(), connection.getPassword(),
+                        connection.getConnectionTimeout());
         configuration.setMarshallingFormat(MarshallingFormat.JSON);
         kieServicesClient = KieServicesFactory.newKieServicesClient(configuration);
         registerCustomQueries(kieServicesClient);
