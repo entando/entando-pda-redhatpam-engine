@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.drools.core.io.impl.ClassPathResource;
@@ -52,7 +53,7 @@ public class KieApiServiceTest {
     @Test
     public void shouldCreateNewKieServicesClient() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         KieServicesClient kieServicesClient = kieApiService.getKieServicesClient(connection);
@@ -65,7 +66,7 @@ public class KieApiServiceTest {
     @Test
     public void shouldHitCacheOnSecondRequestWithSameConnection() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         kieApiService.getKieServicesClient(connection);
@@ -78,11 +79,11 @@ public class KieApiServiceTest {
     @Test
     public void shouldUpdateCacheIfConnectionChanges() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         kieApiService.getKieServicesClient(connection);
-        Connection connection2 = getConnection();
+        Connection connection2 = getDummyConnection();
         connection2.setUsername("test2");
         kieApiService.getKieServicesClient(connection2);
 
@@ -94,7 +95,7 @@ public class KieApiServiceTest {
     @Test
     public void shouldGetProcessServicesClient() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         ProcessServicesClient processServicesClient = kieApiService.getProcessServicesClient(connection);
@@ -106,7 +107,7 @@ public class KieApiServiceTest {
     @Test
     public void shouldGetQueryServicesClient() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         QueryServicesClient queryServicesClient = kieApiService.getQueryServicesClient(connection);
@@ -118,7 +119,7 @@ public class KieApiServiceTest {
     @Test
     public void shouldGetUIServicesClient() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
@@ -130,7 +131,7 @@ public class KieApiServiceTest {
     @Test
     public void shouldRegisterCustomQueries() {
         // Given
-        Connection connection = getConnection();
+        Connection connection = getDummyConnection();
 
         // When
         kieApiService.getKieServicesClient(connection);
@@ -139,15 +140,4 @@ public class KieApiServiceTest {
         verify(putRequestedFor(urlEqualTo(KIE_SERVER_PATH + QUERIES_DEFINITIONS + KieApiService.PDA_GROUPS)));
     }
 
-    private Connection getConnection() {
-        return Connection.builder()
-                .name("testConnection")
-                .host("localhost")
-                .port(String.valueOf(wireMockRule.port()))
-                .schema("http")
-                .app(KIE_SERVER_PATH)
-                .username("test")
-                .password("test")
-                .build();
-    }
 }
