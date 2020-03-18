@@ -15,16 +15,18 @@ import org.entando.plugins.pda.pam.service.task.KieTaskService;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("PMD.ExcessiveParameterList")
 public class KieEngine extends Engine {
 
     public static final String TYPE = "pam";
 
     @Builder
     public KieEngine(KieTaskService taskService, KieTaskDefinitionService taskDefinitionService,
-            KieTaskCommentService taskCommentService, KieTaskFormService taskTaskFormService,
-            KieTaskLifecycleService taskLifecycleService, KieTaskLifecycleBulkService taskLifecycleBulkService,
-            KieProcessService processService, KieProcessFormService processFormService, KieGroupService groupService) {
-        super(TYPE, taskService, taskDefinitionService, taskCommentService, taskTaskFormService, taskLifecycleService,
-                taskLifecycleBulkService, processService, processFormService, groupService);
+            KieTaskCommentService taskCommentService, KieTaskAttachmentService taskAttachmentService,
+            KieTaskFormService taskTaskFormService, KieTaskLifecycleService taskLifecycleService,
+            KieTaskLifecycleBulkService taskLifecycleBulkService, KieProcessService processService,
+            KieProcessFormService processFormService, KieGroupService groupService) {
+        super(TYPE, taskService, taskDefinitionService, taskCommentService, taskAttachmentService, taskTaskFormService,
+                taskLifecycleService, taskLifecycleBulkService, processService, processFormService, groupService);
     }
 }
