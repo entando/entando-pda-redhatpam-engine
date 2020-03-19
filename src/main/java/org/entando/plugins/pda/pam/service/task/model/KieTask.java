@@ -21,6 +21,8 @@ import org.kie.server.api.model.instance.TaskSummary;
 @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "The warned bug is exposure on the Builder,"
         + "however after .build() the constructor is called and vulnerability is resolved")
 public class KieTask extends Task {
+    private Long instanceId;
+    private String containerId;
     private Integer priority;
     private String subject;
     private Date activatedAt;
@@ -69,6 +71,10 @@ public class KieTask extends Task {
         super(new KieInstanceId(containerId, id).toString(), name, description, createdBy, createdAt, dueTo,
                 convertKieTaskStatus(status), owner, flatProperties(inputData), flatProperties(outputData));
 
+        KieInstanceId kieId = new KieInstanceId(containerId, id);
+
+        this.instanceId = kieId.getInstanceId();
+        this.containerId = kieId.getContainerId();
         this.priority = priority;
         this.subject = subject;
         this.activatedAt = activatedAt == null ? null : new Date(activatedAt.getTime());
