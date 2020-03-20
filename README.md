@@ -4,3 +4,4 @@
 [![Coverage Status](https://coveralls.io/repos/github/entando/pda-redhatpam-engine/badge.svg?branch=master)](https://coveralls.io/github/entando/pda-redhatpam-engine?branch=master)
 
 Red Hat PAM Business Process Management engine integration for Entando Process Driven Applications framework
+
