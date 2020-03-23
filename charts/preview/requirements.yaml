@@ -12,5 +12,5 @@ dependencies:
   # !! "alias: preview" must be last entry in dependencies array !!
   # !! Place custom dependencies above !!
 - alias: preview
-  name: entando-pda-redhatpam-engine
-  repository: file://../entando-pda-redhatpam-engine
+  name: pda-redhatpam-engine
+  repository: file://../pda-redhatpam-engine

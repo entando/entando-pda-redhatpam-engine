@@ -44,7 +44,7 @@ canary:
   host: acme.com
 
 service:
-  name: pda-redhatpam-engine
+  name: entando-pda-redhatpam-engine
   type: ClusterIP
   externalPort: 80
   internalPort: 8080
