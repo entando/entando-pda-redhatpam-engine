@@ -221,7 +221,7 @@ public class KieTaskTestHelper {
                 .size(TASK_ATTACHMENT_SIZE_2_2)
                 .lastModified(new Date())
                 .id(UUID.randomUUID().toString())
-                .content(file.getData().getBytes())
+                .content(file.getData())
                 .build();
     }
 }

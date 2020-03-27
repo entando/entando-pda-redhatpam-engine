@@ -1,5 +1,6 @@
 package org.entando.plugins.pda.pam.service.util;
 
+import com.sun.deploy.security.ValidationState.TYPE;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -19,9 +20,10 @@ public class KieDocument {
     public static final String KIE_DOCUMENT_TYPE = "org.jbpm.document.service.impl.DocumentImpl";
 
     private final Map<String, Object> document;
+    private File file;
 
     public KieDocument(String rawData) {
-        File file = new File(rawData);
+        file = new File(rawData);
 
         Map<String, String> attributes = new ConcurrentHashMap<>();
         if (file.getType() != null) {
@@ -41,6 +43,15 @@ public class KieDocument {
         document = (Map<String, Object>) Optional.ofNullable(payload)
                 .orElse(new ConcurrentHashMap<>())
                 .get(KIE_DOCUMENT_TYPE);
+
+        Map<String, String> attributes = (Map<String, String>) document.get(ATTRIBUTES);
+
+        file = File.builder()
+                .name((String) document.get(NAME))
+                .size((Integer) document.get(SIZE))
+                .type(attributes.get(CONTENT_TYPE))
+                .data((byte[]) document.get(CONTENT_TYPE))
+                .build();
     }
 
     public void setId(String id) {
@@ -55,8 +66,20 @@ public class KieDocument {
         return (String) document.get(NAME);
     }
 
-    public String getContent() {
-        return (String) document.get(CONTENT);
+    public byte[] getContent() {
+        return (byte[]) document.get(CONTENT);
+    }
+
+    public void setContent(byte[] content) {
+        file.setData(content);
+    }
+
+    public void setContent(String content) {
+        setContent(content.getBytes());
+    }
+
+    public File getFile() {
+        return file;
     }
 
     public Map<String, Object> getPayload() {
