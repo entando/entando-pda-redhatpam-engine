@@ -31,7 +31,6 @@ import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 
 import com.google.common.collect.ImmutableMap;
-import com.sun.xml.bind.api.impl.NameConverter.Standard;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
