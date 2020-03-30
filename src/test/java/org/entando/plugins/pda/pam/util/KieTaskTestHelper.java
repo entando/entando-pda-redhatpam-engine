@@ -31,6 +31,8 @@ import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 
 import com.google.common.collect.ImmutableMap;
+import com.sun.xml.bind.api.impl.NameConverter.Standard;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -221,7 +223,7 @@ public class KieTaskTestHelper {
                 .size(TASK_ATTACHMENT_SIZE_2_2)
                 .lastModified(new Date())
                 .id(UUID.randomUUID().toString())
-                .content(file.getData())
+                .content(file.getData().getBytes(StandardCharsets.UTF_8))
                 .build();
     }
 }

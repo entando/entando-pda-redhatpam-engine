@@ -1,5 +1,6 @@
 package org.entando.plugins.pda.pam.service.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class KieDocument {
                 .name((String) document.get(NAME))
                 .size((Integer) document.get(SIZE))
                 .type(attributes.get(CONTENT_TYPE))
-                .data((byte[]) document.get(CONTENT_TYPE))
+                .data((String) document.get(CONTENT_TYPE))
                 .build();
     }
 
@@ -65,16 +66,18 @@ public class KieDocument {
         return (String) document.get(NAME);
     }
 
-    public byte[] getContent() {
-        return (byte[]) document.get(CONTENT);
+    public String getContent() {
+        return file.getData();
     }
 
     public void setContent(byte[] content) {
         file.setData(content);
+        file.setSize(content.length);
     }
 
     public void setContent(String content) {
-        setContent(content.getBytes());
+        file.setData(content);
+        file.setSize(content.getBytes(StandardCharsets.UTF_8).length);
     }
 
     public File getFile() {
