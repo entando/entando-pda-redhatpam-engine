@@ -1,6 +1,5 @@
 package org.entando.plugins.pda.pam.service.util;
 
-import com.sun.deploy.security.ValidationState.TYPE;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +19,7 @@ public class KieDocument {
     public static final String KIE_DOCUMENT_TYPE = "org.jbpm.document.service.impl.DocumentImpl";
 
     private final Map<String, Object> document;
-    private File file;
+    private final File file;
 
     public KieDocument(String rawData) {
         file = new File(rawData);
