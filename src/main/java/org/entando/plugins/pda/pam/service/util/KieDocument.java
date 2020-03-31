@@ -19,28 +19,19 @@ public class KieDocument {
 
     public static final String KIE_DOCUMENT_TYPE = "org.jbpm.document.service.impl.DocumentImpl";
 
-    private final Map<String, Object> document;
     private final File file;
+    private String kieIdentifier;
+    private Date lastModified;
 
     public KieDocument(String rawData) {
         file = new File(rawData);
-
-        Map<String, String> attributes = new ConcurrentHashMap<>();
-        if (file.getType() != null) {
-            attributes.put(CONTENT_TYPE, file.getType());
-        }
-
-        document = new ConcurrentHashMap<>();
-        document.put(LAST_MODIFIED, new Date());
-        document.put(NAME, file.getName());
-        document.put(SIZE, file.getSize());
-        document.put(CONTENT, file.getData());
-        document.put(ATTRIBUTES, attributes);
+        lastModified = new Date();
+        kieIdentifier = null;
     }
 
     @SuppressWarnings("unchecked")
     public KieDocument(Map<String, Object> payload) {
-        document = (Map<String, Object>) Optional.ofNullable(payload)
+        Map<String, Object> document = (Map<String, Object>) Optional.ofNullable(payload)
                 .orElse(new ConcurrentHashMap<>())
                 .get(KIE_DOCUMENT_TYPE);
 
@@ -52,18 +43,21 @@ public class KieDocument {
                 .type(attributes.get(CONTENT_TYPE))
                 .data((String) document.get(CONTENT_TYPE))
                 .build();
+
+        lastModified = (Date) document.get(LAST_MODIFIED);
+        kieIdentifier = (String) document.get(IDENTIFIER);
     }
 
     public void setId(String id) {
-        document.put(IDENTIFIER, id);
+        kieIdentifier = id;
     }
 
     public String getId() {
-        return (String) document.get(IDENTIFIER);
+        return kieIdentifier;
     }
 
     public String getFilename() {
-        return (String) document.get(NAME);
+        return file.getName();
     }
 
     public String getContent() {
@@ -72,12 +66,10 @@ public class KieDocument {
 
     public void setContent(byte[] content) {
         file.setData(content);
-        file.setSize(content.length);
     }
 
     public void setContent(String content) {
         file.setData(content);
-        file.setSize(content.getBytes(StandardCharsets.UTF_8).length);
     }
 
     public File getFile() {
@@ -86,7 +78,27 @@ public class KieDocument {
 
     public Map<String, Object> getPayload() {
         Map<String, Object> payload = new ConcurrentHashMap<>();
-        payload.put(KIE_DOCUMENT_TYPE, document);
+        payload.put(KIE_DOCUMENT_TYPE, getDocument());
         return payload;
+    }
+
+    private Map<String, Object> getDocument() {
+        Map<String, String> attributes = new ConcurrentHashMap<>();
+        if (file.getType() != null) {
+            attributes.put(CONTENT_TYPE, file.getType());
+        }
+
+        Map<String, Object> document = new ConcurrentHashMap<>();
+        document.put(LAST_MODIFIED, lastModified);
+        document.put(NAME, file.getName());
+        document.put(SIZE, file.getSize());
+        document.put(CONTENT, file.getData().getBytes());
+        document.put(ATTRIBUTES, attributes);
+
+        if (kieIdentifier != null) {
+            document.put(IDENTIFIER, kieIdentifier);
+        }
+
+        return document;
     }
 }
