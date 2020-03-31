@@ -90,7 +90,7 @@ public class KieDocument {
         document.put(LAST_MODIFIED, lastModified);
         document.put(NAME, file.getName());
         document.put(SIZE, file.getSize());
-        document.put(CONTENT, file.getData().getBytes());
+        document.put(CONTENT, file.getData());
         document.put(ATTRIBUTES, attributes);
 
         if (kieIdentifier != null) {
