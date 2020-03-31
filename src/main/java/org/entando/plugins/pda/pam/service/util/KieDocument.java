@@ -1,6 +1,5 @@
 package org.entando.plugins.pda.pam.service.util;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -21,12 +20,11 @@ public class KieDocument {
 
     private final File file;
     private String kieIdentifier;
-    private Date lastModified;
+    private final Date lastModified;
 
     public KieDocument(String rawData) {
         file = new File(rawData);
         lastModified = new Date();
-        kieIdentifier = null;
     }
 
     @SuppressWarnings("unchecked")
