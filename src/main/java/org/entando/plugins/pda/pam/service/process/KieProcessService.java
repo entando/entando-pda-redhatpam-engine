@@ -1,7 +1,5 @@
 package org.entando.plugins.pda.pam.service.process;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
-import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.service.process.ProcessService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
@@ -38,14 +35,6 @@ public class KieProcessService implements ProcessService {
     //CHECKSTYLE:OFF
     public static final String PROCESS_DEFINITION_LIST_URL = "/queries/processes/definitions";
     //CHECKSTYLE:ON
-
-    public static final ObjectMapper MAPPER = new ObjectMapper();
-
-    static {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(Form.class, new KieFormDeserializer());
-        MAPPER.registerModule(module);
-    }
 
     @Override
     public List<ProcessDefinition> listDefinitions(Connection connection) {
