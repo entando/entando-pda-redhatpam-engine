@@ -2,6 +2,7 @@ package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.CONTAINER_ID_1;
+import static org.entando.plugins.pda.core.utils.TestUtils.PROCESS_DEFINITION_ID;
 import static org.entando.plugins.pda.core.utils.TestUtils.TASK_ID_1;
 import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleTaskForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
@@ -9,6 +10,8 @@ import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
 import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.randomStringId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
+import static org.entando.plugins.pda.pam.service.util.KieUtils.createFormSubmission;
+import static org.entando.plugins.pda.pam.util.KieFormTestHelper.trimIgnoreProperties;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -21,10 +24,12 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
+import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.junit.Before;
 import org.junit.Rule;
@@ -143,19 +148,23 @@ public class KieTaskFormServiceTest {
 
         Map<String, Object> request = MAPPER.readValue(
                 readFromFile(SUBMIT_TASK_FORM_JSON_2), Map.class);
-        Map<String, Object> kieRequest = MAPPER.readValue(
-                readFromFile(KIE_SUBMIT_TASK_FORM_JSON_2), Map.class);
+        Map<String, Object> kieRequest = trimIgnoreProperties(MAPPER.readValue(
+                readFromFile(KIE_SUBMIT_TASK_FORM_JSON_2), Map.class));
 
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
                 .thenReturn(readFromFile(TASK_FORM_JSON_2));
 
         // When
+        Form form = kieTaskFormService.get(Connection.builder().build(), taskId.toString());
+        Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request));
         String result = kieTaskFormService.submit(getDummyConnection(), getDummyUser(), taskId.toString(), request);
 
         // Then
         assertThat(result).isEqualTo(taskId.toString());
         verify(taskServicesClient).saveTaskContent(eq(taskId.getContainerId()), eq(taskId.getInstanceId()),
-                eq(kieRequest));
+                anyMap());
+
+        assertThat(submission).isEqualTo(kieRequest);
     }
 
     @Test
