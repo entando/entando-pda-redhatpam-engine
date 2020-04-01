@@ -13,6 +13,7 @@ import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.AttachmentNotFoundException;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Attachment;
+import org.entando.plugins.pda.core.model.File;
 import org.entando.plugins.pda.core.request.CreateAttachmentRequest;
 import org.entando.plugins.pda.core.service.task.TaskAttachmentService;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
@@ -117,17 +118,19 @@ public class KieTaskAttachmentService implements TaskAttachmentService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public byte[] download(Connection connection, AuthenticatedUser user, String id, String attachmentId) {
+    public File download(Connection connection, AuthenticatedUser user, String id, String attachmentId) {
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
         DocumentServicesClient documentClient = kieApiService.getDocumentServicesClient(connection);
         KieInstanceId taskId = new KieInstanceId(id);
 
         try {
-            KieDocument documentDetails = new KieDocument((Map<String, Object>) client.getTaskAttachmentContentById(
+            KieDocument document = new KieDocument((Map<String, Object>) client.getTaskAttachmentContentById(
                     taskId.getContainerId(), taskId.getInstanceId(), Long.valueOf(attachmentId)));
 
-            DocumentInstance document = documentClient.getDocument(documentDetails.getId());
-            return document.getContent();
+            DocumentInstance documentDetails = documentClient.getDocument(document.getId());
+            document.setContent(documentDetails.getContent());
+
+            return document.getFile();
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new AttachmentNotFoundException(e);
