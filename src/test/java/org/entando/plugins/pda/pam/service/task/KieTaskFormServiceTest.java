@@ -2,7 +2,6 @@ package org.entando.plugins.pda.pam.service.task;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.CONTAINER_ID_1;
-import static org.entando.plugins.pda.core.utils.TestUtils.PROCESS_DEFINITION_ID;
 import static org.entando.plugins.pda.core.utils.TestUtils.TASK_ID_1;
 import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleTaskForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
@@ -29,7 +28,6 @@ import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
-import org.entando.plugins.pda.pam.service.util.KieDefinitionId;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.junit.Before;
 import org.junit.Rule;
