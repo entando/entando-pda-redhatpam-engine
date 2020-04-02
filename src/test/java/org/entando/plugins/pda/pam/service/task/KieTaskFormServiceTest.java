@@ -3,11 +3,14 @@ package org.entando.plugins.pda.pam.service.task;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.CONTAINER_ID_1;
 import static org.entando.plugins.pda.core.utils.TestUtils.TASK_ID_1;
+import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleTaskForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyConnection;
 import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
 import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.randomStringId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
+import static org.entando.plugins.pda.pam.service.util.KieUtils.createFormSubmission;
+import static org.entando.plugins.pda.pam.util.KieFormTestHelper.trimIgnoreProperties;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -20,12 +23,12 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
-import org.entando.plugins.pda.pam.util.KieTaskFormTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,9 +46,13 @@ public class KieTaskFormServiceTest {
     private UserTaskServicesClient taskServicesClient;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String TASK_FORM_JSON = "form/task-form.json";
-    private static final String SUBMIT_TASK_FORM_JSON = "form/task-form-submission.json";
-    private static final String KIE_SUBMIT_TASK_FORM_JSON = "form/kie-task-form-submission.json";
+    private static final String TASK_FORM_JSON_1 = "form/simple-task-form.json";
+    private static final String SUBMIT_TASK_FORM_JSON_1 = "form/simple-task-form-submission.json";
+    private static final String KIE_SUBMIT_TASK_FORM_JSON_1 = "form/simple-kie-task-form-submission.json";
+
+    private static final String TASK_FORM_JSON_2 = "form/full-task-form.json";
+    private static final String SUBMIT_TASK_FORM_JSON_2 = "form/full-task-form-submission.json";
+    private static final String KIE_SUBMIT_TASK_FORM_JSON_2 = "form/full-kie-task-form-submission.json";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -63,13 +70,13 @@ public class KieTaskFormServiceTest {
     }
 
     @Test
-    public void shouldGetTaskForm() {
+    public void shouldGetSimpleTaskForm() {
         KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_1, TASK_ID_1);
 
         // Given
-        Form expected = KieTaskFormTestHelper.createTaskForm();
+        Form expected = createSimpleTaskForm();
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
-            .thenReturn(readFromFile(TASK_FORM_JSON));
+            .thenReturn(readFromFile(TASK_FORM_JSON_1));
 
         // When
         Form result = kieTaskFormService.get(getDummyConnection(), taskId.toString());
@@ -110,17 +117,17 @@ public class KieTaskFormServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void shouldSubmitTaskForm() throws Exception {
+    public void shouldSubmitSimpleTaskForm() throws Exception {
         // Given
         KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_1, TASK_ID_1);
 
         Map<String, Object> request = MAPPER.readValue(
-                readFromFile(SUBMIT_TASK_FORM_JSON), Map.class);
+                readFromFile(SUBMIT_TASK_FORM_JSON_1), Map.class);
         Map<String, Object> kieRequest = MAPPER.readValue(
-                readFromFile(KIE_SUBMIT_TASK_FORM_JSON), Map.class);
+                readFromFile(KIE_SUBMIT_TASK_FORM_JSON_1), Map.class);
 
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
-                .thenReturn(readFromFile(TASK_FORM_JSON));
+                .thenReturn(readFromFile(TASK_FORM_JSON_1));
 
         // When
         String result = kieTaskFormService.submit(getDummyConnection(), getDummyUser(), taskId.toString(), request);
@@ -132,6 +139,33 @@ public class KieTaskFormServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    public void shouldSubmitFullTaskForm() throws Exception {
+        // Given
+        KieInstanceId taskId = new KieInstanceId(CONTAINER_ID_1, TASK_ID_1);
+
+        Map<String, Object> request = MAPPER.readValue(
+                readFromFile(SUBMIT_TASK_FORM_JSON_2), Map.class);
+        Map<String, Object> kieRequest = trimIgnoreProperties(MAPPER.readValue(
+                readFromFile(KIE_SUBMIT_TASK_FORM_JSON_2), Map.class));
+
+        when(uiServicesClient.getTaskForm(anyString(), anyLong()))
+                .thenReturn(readFromFile(TASK_FORM_JSON_2));
+
+        // When
+        Form form = kieTaskFormService.get(Connection.builder().build(), taskId.toString());
+        Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request));
+        String result = kieTaskFormService.submit(getDummyConnection(), getDummyUser(), taskId.toString(), request);
+
+        // Then
+        assertThat(result).isEqualTo(taskId.toString());
+        verify(taskServicesClient).saveTaskContent(eq(taskId.getContainerId()), eq(taskId.getInstanceId()),
+                anyMap());
+
+        assertThat(submission).isEqualTo(kieRequest);
+    }
+
+    @Test
     public void shouldThrowTaskNotFoundWhenSubmitFormWithInvalidTaskId() {
         //Given
         KieInstanceId taskId = new KieInstanceId(randomStringId(), randomLongId());
@@ -139,7 +173,7 @@ public class KieTaskFormServiceTest {
         expectedException.expect(TaskNotFoundException.class);
 
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
-                .thenReturn(readFromFile(TASK_FORM_JSON));
+                .thenReturn(readFromFile(TASK_FORM_JSON_1));
 
         when(taskServicesClient.saveTaskContent(anyString(), anyLong(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
@@ -156,7 +190,7 @@ public class KieTaskFormServiceTest {
         expectedException.expect(KieInvalidResponseException.class);
 
         when(uiServicesClient.getTaskForm(anyString(), anyLong()))
-                .thenReturn(readFromFile(TASK_FORM_JSON));
+                .thenReturn(readFromFile(TASK_FORM_JSON_1));
 
         when(taskServicesClient.saveTaskContent(anyString(), anyLong(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));

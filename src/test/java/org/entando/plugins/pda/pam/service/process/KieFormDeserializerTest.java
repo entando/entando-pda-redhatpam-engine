@@ -2,13 +2,14 @@ package org.entando.plugins.pda.pam.service.process;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.createFullProcessForm;
+import static org.entando.plugins.pda.core.utils.TestUtils.createFullTaskForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleProcessForm;
+import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleTaskForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.entando.plugins.pda.core.model.form.Form;
-import org.entando.plugins.pda.pam.util.KieTaskFormTestHelper;
 import org.junit.Test;
 
 public class KieFormDeserializerTest {
@@ -34,8 +35,14 @@ public class KieFormDeserializerTest {
     }
 
     @Test
-    public void shouldDeserializeTaskKieJsonToForms() throws Exception {
-        Form result = MAPPER.readValue(readFromFile("form/task-form.json"), Form.class);
-        assertThat(result).isEqualTo(KieTaskFormTestHelper.createTaskForm());
+    public void shouldDeserializeSimpleTaskKieJsonToForms() throws Exception {
+        Form result = MAPPER.readValue(readFromFile("form/simple-task-form.json"), Form.class);
+        assertThat(result).isEqualTo(createSimpleTaskForm());
+    }
+
+    @Test
+    public void shouldDeserializeFullTaskKieJsonToForms() throws Exception {
+        Form result = MAPPER.readValue(readFromFile("form/full-task-form.json"), Form.class);
+        assertThat(result).isEqualTo(createFullTaskForm());
     }
 }

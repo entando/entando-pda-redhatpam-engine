@@ -7,6 +7,7 @@ import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleProcessFo
 import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
 import static org.entando.plugins.pda.pam.service.util.KieUtils.createFormSubmission;
+import static org.entando.plugins.pda.pam.util.KieFormTestHelper.trimIgnoreProperties;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,11 +17,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessDefinitionNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
@@ -202,28 +199,6 @@ public class KieProcessFormServiceTest {
         expectedException.expect(KieInvalidResponseException.class);
 
         kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>());
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> trimIgnoreProperties(Map<String, Object> result) {
-        return result.entrySet().stream()
-            .peek(e -> {
-                if (e.getValue() instanceof Map) {
-                    e.setValue(trimIgnoreProperties((Map<String, Object>) e.getValue()));
-                } else if (e.getValue() instanceof List && e.getKey().equals("documents")) {
-                    e.setValue(trimIgnoreProperties((List<Map<String, Object>>) e.getValue()));
-                } else if (e.getKey().equals("lastModified")) {
-                    e.setValue("**ignore**");
-                }
-            })
-            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-    }
-
-    private List<Map<String, Object>> trimIgnoreProperties(List<Map<String, Object>> result) {
-        return result.stream()
-                .filter(Objects::nonNull)
-                .peek(this::trimIgnoreProperties)
-                .collect(Collectors.toList());
     }
 
 }
