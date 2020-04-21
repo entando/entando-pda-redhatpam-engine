@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.entando.plugins.pda.core.exception.AttachmentNotFoundException;
 import org.entando.plugins.pda.core.model.Attachment;
+import org.entando.plugins.pda.core.model.File;
 import org.entando.plugins.pda.core.request.CreateAttachmentRequest;
 import org.entando.plugins.pda.core.service.task.TaskAttachmentService;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
@@ -162,11 +163,12 @@ public class KieTaskAttachmentServiceTest {
                 .thenReturn(document);
 
         // When
-        byte[] result = kieTaskAttachmentService.download(getDummyConnection(), null, taskId.toString(),
+        File result = kieTaskAttachmentService.download(getDummyConnection(), null, taskId.toString(),
                 TASK_ATTACHMENT_ID_1_1);
 
         // Then
-        assertThat(result).isEqualTo(expected.getContent().getBytes());
+        assertThat(result.getData()).isEqualTo(expected.getContent());
+        assertThat(result.getName()).isEqualTo(expected.getFilename());
 
         verify(userTaskServicesClient)
                 .getTaskAttachmentContentById(taskId.getContainerId(), taskId.getInstanceId(),

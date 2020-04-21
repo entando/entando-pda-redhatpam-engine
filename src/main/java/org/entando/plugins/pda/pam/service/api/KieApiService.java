@@ -62,7 +62,7 @@ public class KieApiService {
         QueryDefinition queryDefinition = QueryDefinition.builder()
                 .name(PDA_GROUPS)
                 .source("${org.kie.server.persistence.ds}")
-                .expression("SELECT id FROM organizationalentity\n"
+                .expression("SELECT id FROM OrganizationalEntity\n"
                         + "WHERE dtype = 'Group'\n"
                 ).target("CUSTOM")
                 .build();
