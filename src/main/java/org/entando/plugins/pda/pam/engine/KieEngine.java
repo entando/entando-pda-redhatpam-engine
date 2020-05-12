@@ -4,6 +4,7 @@ import lombok.Builder;
 import org.entando.plugins.pda.core.engine.Engine;
 import org.entando.plugins.pda.pam.service.group.KieGroupService;
 import org.entando.plugins.pda.pam.service.process.KieProcessFormService;
+import org.entando.plugins.pda.pam.service.process.KieProcessInstanceService;
 import org.entando.plugins.pda.pam.service.process.KieProcessService;
 import org.entando.plugins.pda.pam.service.task.KieTaskAttachmentService;
 import org.entando.plugins.pda.pam.service.task.KieTaskCommentService;
@@ -25,8 +26,10 @@ public class KieEngine extends Engine {
             KieTaskCommentService taskCommentService, KieTaskAttachmentService taskAttachmentService,
             KieTaskFormService taskTaskFormService, KieTaskLifecycleService taskLifecycleService,
             KieTaskLifecycleBulkService taskLifecycleBulkService, KieProcessService processService,
-            KieProcessFormService processFormService, KieGroupService groupService) {
+            KieProcessInstanceService processInstanceService, KieProcessFormService processFormService,
+            KieGroupService groupService) {
         super(TYPE, taskService, taskDefinitionService, taskCommentService, taskAttachmentService, taskTaskFormService,
-                taskLifecycleService, taskLifecycleBulkService, processService, processFormService, groupService);
+                taskLifecycleService, taskLifecycleBulkService, processService, processInstanceService,
+                processFormService, groupService);
     }
 }
