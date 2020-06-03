@@ -60,7 +60,7 @@ public class KieTaskFormService implements TaskFormService {
     public String submit(Connection connection, AuthenticatedUser user, String id, Map<String, Object> request) {
         Form form = get(connection, id);
 
-        Map<String, Object> variables = createFormSubmission(form, request);
+        Map<String, Object> variables = createFormSubmission(form, request, true);
 
         UserTaskServicesClient client = kieApiService.getUserTaskServicesClient(connection);
 

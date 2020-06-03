@@ -165,7 +165,7 @@ public class KieProcessFormServiceTest {
 
         // When
         Form form = kieProcessFormService.get(connection, processId.toString());
-        Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request));
+        Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request, true));
         kieProcessFormService.submit(connection, processId.toString(), request);
 
         // Then
