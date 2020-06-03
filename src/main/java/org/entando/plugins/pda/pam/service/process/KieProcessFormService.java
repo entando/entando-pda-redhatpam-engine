@@ -59,7 +59,7 @@ public class KieProcessFormService implements ProcessFormService {
     public String submit(Connection connection, String processDefinitionId, Map<String, Object> request) {
         Form form = get(connection, processDefinitionId);
 
-        Map<String, Object> variables = createFormSubmission(form, request);
+        Map<String, Object> variables = createFormSubmission(form, request, true);
 
         ProcessServicesClient client = kieApiService.getProcessServicesClient(connection);
 

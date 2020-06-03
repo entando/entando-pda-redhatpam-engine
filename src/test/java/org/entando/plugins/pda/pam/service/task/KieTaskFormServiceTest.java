@@ -154,7 +154,7 @@ public class KieTaskFormServiceTest {
 
         // When
         Form form = kieTaskFormService.get(Connection.builder().build(), taskId.toString());
-        Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request));
+        Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request, true));
         String result = kieTaskFormService.submit(getDummyConnection(), getDummyUser(), taskId.toString(), request);
 
         // Then

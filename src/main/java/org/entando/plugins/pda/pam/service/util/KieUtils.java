@@ -32,8 +32,9 @@ public class KieUtils {
         return queryUrl.toString();
     }
 
-    @SuppressWarnings({ "unchecked", "PMD.AvoidInstantiatingObjectsInLoops" })
-    public static Map<String, Object> createFormSubmission(Form form, Map<String, Object> request) {
+    @SuppressWarnings({"unchecked", "PMD.AvoidInstantiatingObjectsInLoops", "PMD.CyclomaticComplexity"})
+    public static Map<String, Object> createFormSubmission(Form form, Map<String, Object> request,
+            boolean includeType) {
         Map<String, Object> submission = new ConcurrentHashMap<>();
 
         for (Map.Entry<String, Object> entry : request.entrySet()) {
@@ -45,16 +46,21 @@ public class KieUtils {
             }
 
             if (FormFieldType.SUBFORM.equals(field.getType())) {
-                Map<String, Object> subFormSubmission = new ConcurrentHashMap<>();
-                submission.put(key, subFormSubmission);
-
                 if (!(entry.getValue() instanceof Map)) {
                     throw new BadRequestException();
                 }
-
                 FormFieldSubForm fieldSubForm = (FormFieldSubForm) field;
-                subFormSubmission.put(fieldSubForm.getFormType(),
-                        createFormSubmission(fieldSubForm.getForm(), (Map<String, Object>) request.get(key)));
+                if (includeType) {
+                    Map<String, Object> subFormSubmission = new ConcurrentHashMap<>();
+                    submission.put(key, subFormSubmission);
+
+                    subFormSubmission.put(fieldSubForm.getFormType(),
+                            createFormSubmission(fieldSubForm.getForm(), (Map<String, Object>) request.get(key),
+                                    false));
+                } else {
+                    submission.put(key, createFormSubmission(fieldSubForm.getForm(),
+                            (Map<String, Object>) request.get(key), false));
+                }
             } else if (FormFieldType.DOCUMENT == field.getType()) {
                 submission.put(key, new KieDocument((String) entry.getValue()).getPayload());
             } else if (FormFieldType.DOCUMENT_LIST == field.getType()) {
@@ -72,7 +78,6 @@ public class KieUtils {
         documents.put("documents", rawDocuments.stream()
                 .map(s -> new KieDocument(s).getPayload())
                 .collect(Collectors.toList()));
-
 
         Map<String, Object> result = new ConcurrentHashMap<>();
         result.put("org.jbpm.document.service.impl.DocumentCollectionImpl", documents);

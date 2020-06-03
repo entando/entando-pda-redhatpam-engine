@@ -1,23 +1,19 @@
 {
-  "application":{
-    "com.myspace.mortgage_app.Application":{
-      "property":{
-        "com.myspace.mortgage_app.Property":{
-          "address":"123 Test",
-          "saleprice":60000,
-          "locale":"123",
-          "age":12
-        }
+  "application": {
+    "com.myspace.mortgage_app.Application": {
+      "property": {
+        "address": "123 Test",
+        "saleprice": 60000,
+        "locale": "123",
+        "age": 12
       },
-      "applicant":{
-        "com.myspace.mortgage_app.Applicant":{
-          "name":"Test",
-          "annualincome":50000,
-          "ssn":"123456789"
-        }
+      "applicant": {
+        "name": "Test",
+        "annualincome": 50000,
+        "ssn": "123456789"
       },
-      "amortization":30,
-      "downpayment":50000
+      "amortization": 30,
+      "downpayment": 50000
     }
   }
 }
