@@ -4,8 +4,10 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.entando.plugins.pda.core.utils.TestUtils.PROCESS_DEFINITION_ID;
 import static org.entando.plugins.pda.core.utils.TestUtils.createFullProcessForm;
 import static org.entando.plugins.pda.core.utils.TestUtils.createSimpleProcessForm;
+import static org.entando.plugins.pda.core.utils.TestUtils.getDummyUser;
 import static org.entando.plugins.pda.core.utils.TestUtils.randomLongId;
 import static org.entando.plugins.pda.core.utils.TestUtils.readFromFile;
+import static org.entando.plugins.pda.pam.service.process.KieProcessFormService.INITIATOR_VAR;
 import static org.entando.plugins.pda.pam.service.util.KieUtils.createFormSubmission;
 import static org.entando.plugins.pda.pam.util.KieFormTestHelper.trimIgnoreProperties;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -18,6 +20,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
+import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessDefinitionNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
@@ -74,16 +77,14 @@ public class KieProcessFormServiceTest {
 
         // Given
         Form expected = createSimpleProcessForm();
-        when(uiServicesClient.getProcessForm(anyString(), anyString()))
-            .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
+        when(uiServicesClient.getProcessForm(anyString(), anyString())).thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         // When
         Form result = kieProcessFormService.get(connection, processId.toString());
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(uiServicesClient)
-                .getProcessForm(processId.getContainerId(), processId.getDefinitionId());
+        verify(uiServicesClient).getProcessForm(processId.getContainerId(), processId.getDefinitionId());
     }
 
     @Test
@@ -93,16 +94,14 @@ public class KieProcessFormServiceTest {
 
         // Given
         Form expected = createFullProcessForm();
-        when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON_2));
+        when(uiServicesClient.getProcessForm(anyString(), anyString())).thenReturn(readFromFile(PROCESS_FORM_JSON_2));
 
         // When
         Form result = kieProcessFormService.get(connection, processId.toString());
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(uiServicesClient)
-                .getProcessForm(processId.getContainerId(), processId.getDefinitionId());
+        verify(uiServicesClient).getProcessForm(processId.getContainerId(), processId.getDefinitionId());
     }
 
     @Test
@@ -122,83 +121,77 @@ public class KieProcessFormServiceTest {
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
-        Map<String, Object> request = MAPPER.readValue(
-                readFromFile(SUBMIT_PROCESS_FORM_JSON_1), Map.class);
-        Map<String, Object> kieRequest = MAPPER.readValue(
-                readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON_1), Map.class);
+        Map<String, Object> request = MAPPER.readValue(readFromFile(SUBMIT_PROCESS_FORM_JSON_1), Map.class);
+        Map<String, Object> kieRequest = MAPPER.readValue(readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON_1), Map.class);
 
         Long expected = randomLongId();
 
-        when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
-                .thenReturn(expected);
+        when(processServicesClient.startProcess(anyString(), anyString(), anyMap())).thenReturn(expected);
 
-        when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
+        when(uiServicesClient.getProcessForm(anyString(), anyString())).thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         // When
-        kieProcessFormService.submit(connection, processId.toString(), request);
+        AuthenticatedUser user = getDummyUser();
+        String processInstanceId = kieProcessFormService.submit(connection, processId.toString(), request, user);
 
         // Then
+        verify(processServicesClient).startProcess(processId.getContainerId(), processId.getDefinitionId(), kieRequest);
         verify(processServicesClient)
-                .startProcess(processId.getContainerId(), processId.getDefinitionId(), kieRequest);
+                .setProcessVariable(processId.getContainerId(), Long.valueOf(processInstanceId), INITIATOR_VAR,
+                        user.getAccessToken().getPreferredUsername());
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void shouldSubmitFullProcessForm() throws Exception {
-
         KieDefinitionId processId = new KieDefinitionId(PROCESS_DEFINITION_ID);
 
         // Given
-        Map<String, Object> request = MAPPER.readValue(
-                readFromFile(SUBMIT_PROCESS_FORM_JSON_2), Map.class);
-        Map<String, Object> expected = trimIgnoreProperties(MAPPER.readValue(
-                readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON_2), Map.class));
+        Map<String, Object> request = MAPPER.readValue(readFromFile(SUBMIT_PROCESS_FORM_JSON_2), Map.class);
+        Map<String, Object> expected = trimIgnoreProperties(
+                MAPPER.readValue(readFromFile(KIE_SUBMIT_PROCESS_FORM_JSON_2), Map.class));
 
+        when(processServicesClient.startProcess(anyString(), anyString(), anyMap())).thenReturn(randomLongId());
 
-
-        when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
-                .thenReturn(randomLongId());
-
-        when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON_2));
+        when(uiServicesClient.getProcessForm(anyString(), anyString())).thenReturn(readFromFile(PROCESS_FORM_JSON_2));
 
         // When
         Form form = kieProcessFormService.get(connection, processId.toString());
         Map<String, Object> submission = trimIgnoreProperties(createFormSubmission(form, request, true));
-        kieProcessFormService.submit(connection, processId.toString(), request);
+        AuthenticatedUser user = getDummyUser();
+        String processInstanceId = kieProcessFormService.submit(connection, processId.toString(), request, user);
 
         // Then
         verify(processServicesClient)
                 .startProcess(eq(processId.getContainerId()), eq(processId.getDefinitionId()), anyMap());
+        verify(processServicesClient)
+                .setProcessVariable(processId.getContainerId(), Long.valueOf(processInstanceId), INITIATOR_VAR,
+                        user.getAccessToken().getPreferredUsername());
 
         assertThat(submission).isEqualTo(expected);
     }
 
     @Test
     public void shouldThrowNotFoundWhenSubmitProcessFormWithInvalidProcessDefinitionId() {
-        when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
+        when(uiServicesClient.getProcessForm(anyString(), anyString())).thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.NOT_FOUND.value(), null, null));
 
         expectedException.expect(ProcessDefinitionNotFoundException.class);
 
-        kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>());
+        kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>(), getDummyUser());
     }
 
     @Test
     public void shouldThrowKieInvalidResponseWhenSubmitProcessFormWithInvalidContainerId() {
-        when(uiServicesClient.getProcessForm(anyString(), anyString()))
-                .thenReturn(readFromFile(PROCESS_FORM_JSON_1));
+        when(uiServicesClient.getProcessForm(anyString(), anyString())).thenReturn(readFromFile(PROCESS_FORM_JSON_1));
 
         when(processServicesClient.startProcess(anyString(), anyString(), anyMap()))
                 .thenThrow(new KieServicesHttpException(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), null, null));
 
         expectedException.expect(KieInvalidResponseException.class);
 
-        kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>());
+        kieProcessFormService.submit(connection, PROCESS_DEFINITION_ID, new HashMap<>(), getDummyUser());
     }
-
 }

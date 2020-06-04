@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.ProcessDefinitionNotFoundException;
 import org.entando.plugins.pda.core.model.form.Form;
@@ -25,9 +26,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KieProcessFormService implements ProcessFormService {
 
-    private final KieApiService kieApiService;
-
+    public static final String INITIATOR_VAR = "initiator";
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private final KieApiService kieApiService;
 
     static {
         SimpleModule module = new SimpleModule();
@@ -42,8 +44,7 @@ public class KieProcessFormService implements ProcessFormService {
         UIServicesClient uiServicesClient = kieApiService.getUiServicesClient(connection);
 
         try {
-            String json = uiServicesClient
-                    .getProcessForm(id.getContainerId(), id.getDefinitionId());
+            String json = uiServicesClient.getProcessForm(id.getContainerId(), id.getDefinitionId());
             return MAPPER.readValue(json, Form.class);
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
@@ -56,17 +57,20 @@ public class KieProcessFormService implements ProcessFormService {
     }
 
     @Override
-    public String submit(Connection connection, String processDefinitionId, Map<String, Object> request) {
+    public String submit(Connection connection, String processDefinitionId, Map<String, Object> request,
+            AuthenticatedUser user) {
         Form form = get(connection, processDefinitionId);
 
         Map<String, Object> variables = createFormSubmission(form, request, true);
 
         ProcessServicesClient client = kieApiService.getProcessServicesClient(connection);
 
+        String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
         try {
             KieDefinitionId id = new KieDefinitionId(processDefinitionId);
-            return client.startProcess(id.getContainerId(), id.getDefinitionId(), variables)
-                    .toString();
+            Long processInstanceId = client.startProcess(id.getContainerId(), id.getDefinitionId(), variables);
+            client.setProcessVariable(id.getContainerId(), processInstanceId, INITIATOR_VAR, username);
+            return String.valueOf(processInstanceId);
         } catch (KieServicesHttpException e) {
             if (e.getHttpCode().equals(HttpStatus.NOT_FOUND.value())) {
                 throw new ProcessDefinitionNotFoundException(e);
