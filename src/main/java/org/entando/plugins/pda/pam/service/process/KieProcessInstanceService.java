@@ -1,5 +1,6 @@
 package org.entando.plugins.pda.pam.service.process;
 
+import static org.entando.plugins.pda.pam.service.process.KieProcessFormService.INITIATOR_VAR;
 import static org.entando.plugins.pda.pam.service.task.model.KieTask.KIE_STATUS_COMPLETED;
 import static org.entando.plugins.pda.pam.service.task.model.KieTask.KIE_STATUS_CREATED;
 import static org.entando.plugins.pda.pam.service.task.model.KieTask.KIE_STATUS_IN_PROGRESS;
@@ -43,16 +44,16 @@ public class KieProcessInstanceService implements ProcessInstanceService {
 
         QueryServicesClient queryServicesClient = kieApiService.getQueryServicesClient(connection);
         UserTaskServicesClient userTaskServicesClient = kieApiService.getUserTaskServicesClient(connection);
-        return queryServicesClient
-                .findProcessInstancesByProcessIdAndInitiator(processDefinitionId, username,
-                        Arrays.asList(PROCESS_INSTANCE_ACTIVE, PROCESS_INSTANCE_COMPLETED), 0, ALL_ITEMS)
+        return queryServicesClient.findProcessInstancesByVariableAndValue(INITIATOR_VAR, username,
+                Arrays.asList(PROCESS_INSTANCE_ACTIVE, PROCESS_INSTANCE_COMPLETED), 0, ALL_ITEMS)
                 .stream()
-                .map((org.kie.server.api.model.instance.ProcessInstance pi) -> toProcessInstance(userTaskServicesClient,
-                        pi))
+                .filter(e -> e.getProcessId().equals(processDefinitionId))
+                .map((org.kie.server.api.model.instance.ProcessInstance pi) -> toProcessInstance(username,
+                        userTaskServicesClient, pi))
                 .collect(Collectors.toList());
     }
 
-    private ProcessInstance toProcessInstance(UserTaskServicesClient userTaskServicesClient,
+    private ProcessInstance toProcessInstance(String initiator, UserTaskServicesClient userTaskServicesClient,
             org.kie.server.api.model.instance.ProcessInstance processInstance) {
         List<TaskSummary> taskSummaries = userTaskServicesClient
                 .findTasksByStatusByProcessInstanceId(processInstance.getId(), ACTIVE_STATUSES, 0, ALL_ITEMS);
@@ -62,7 +63,7 @@ public class KieProcessInstanceService implements ProcessInstanceService {
                 .id(String.valueOf(processInstance.getId()))
                 .date(date)
                 .processDefinitionId(processInstance.getProcessId())
-                .initiator(processInstance.getInitiator())
+                .initiator(initiator)
                 .processName(processInstance.getProcessName())
                 .processVersion(processInstance.getProcessVersion())
                 .state(String.valueOf(processInstance.getState()))
