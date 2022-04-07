@@ -32,6 +32,9 @@ import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
+import org.entando.plugins.pda.core.request.Filter;
+import org.entando.plugins.pda.core.request.PagedListRequest;
+import org.entando.plugins.pda.core.response.PagedRestResponse;
 import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.task.model.KieTask;
@@ -40,9 +43,6 @@ import org.entando.plugins.pda.pam.service.task.model.KieTaskListResponse;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskSummaryResponse;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.util.KieTaskTestHelper;
-import org.entando.web.request.Filter;
-import org.entando.web.request.PagedListRequest;
-import org.entando.web.response.PagedRestResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -83,7 +83,7 @@ public class KieTaskServiceTest {
 
         RestTemplate restTemplate = new RestTemplate();
         RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
-        when(restTemplateBuilder.basicAuthorization(anyString(), anyString())).thenReturn(restTemplateBuilder);
+        when(restTemplateBuilder.basicAuthentication(anyString(), anyString())).thenReturn(restTemplateBuilder);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
         mockServer = MockRestServiceServer.createServer(restTemplate);
 

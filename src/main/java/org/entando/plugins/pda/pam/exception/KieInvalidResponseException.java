@@ -1,6 +1,6 @@
 package org.entando.plugins.pda.pam.exception;
 
-import org.entando.web.exception.InternalServerException;
+import org.entando.plugins.pda.core.exception.InternalServerException;
 import org.springframework.http.HttpStatus;
 
 public class KieInvalidResponseException extends InternalServerException {

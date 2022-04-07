@@ -6,17 +6,17 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.BadResponseException;
+import org.entando.plugins.pda.core.exception.InternalServerException;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
+import org.entando.plugins.pda.core.request.PagedListRequest;
 import org.entando.plugins.pda.core.service.process.ProcessService;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
 import org.entando.plugins.pda.pam.service.util.KieUtils;
-import org.entando.web.exception.BadResponseException;
-import org.entando.web.exception.InternalServerException;
-import org.entando.web.request.PagedListRequest;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
@@ -88,7 +88,7 @@ public class KieProcessService implements ProcessService {
 
     private RestTemplate getRestTemplate(Connection connection) {
         return restTemplateBuilder
-                .basicAuthorization(connection.getUsername(), connection.getPassword())
+                .basicAuthentication(connection.getUsername(), connection.getPassword())
                 .build();
     }
 }
