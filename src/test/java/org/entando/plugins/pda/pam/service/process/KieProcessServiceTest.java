@@ -18,16 +18,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import org.entando.plugins.pda.core.engine.Connection;
+import org.entando.plugins.pda.core.exception.InternalServerException;
 import org.entando.plugins.pda.core.exception.ProcessNotFoundException;
 import org.entando.plugins.pda.core.model.ProcessDefinition;
+import org.entando.plugins.pda.core.request.PagedListRequest;
 import org.entando.plugins.pda.pam.exception.KieInvalidIdException;
 import org.entando.plugins.pda.pam.service.api.KieApiService;
 import org.entando.plugins.pda.pam.service.process.model.KieProcessDefinition;
 import org.entando.plugins.pda.pam.service.task.model.KieProcessDefinitionsResponse;
 import org.entando.plugins.pda.pam.service.util.KieUtils;
 import org.entando.plugins.pda.pam.util.KieProcessTestHelper;
-import org.entando.web.exception.InternalServerException;
-import org.entando.web.request.PagedListRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,7 +57,7 @@ public class KieProcessServiceTest {
     public void setUp() {
         RestTemplate restTemplate = new RestTemplate();
         RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
-        when(restTemplateBuilder.basicAuthorization(anyString(), anyString())).thenReturn(restTemplateBuilder);
+        when(restTemplateBuilder.basicAuthentication(anyString(), anyString())).thenReturn(restTemplateBuilder);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
         mockServer = MockRestServiceServer.createServer(restTemplate);
 

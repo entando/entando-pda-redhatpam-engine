@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.entando.plugins.pda.core.exception.InternalServerException;
 import org.entando.plugins.pda.core.model.Task;
-import org.entando.web.exception.InternalServerException;
 
 @UtilityClass
 @Slf4j

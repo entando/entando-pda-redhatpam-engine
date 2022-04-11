@@ -12,6 +12,10 @@ import org.entando.keycloak.security.AuthenticatedUser;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.entando.plugins.pda.core.exception.TaskNotFoundException;
 import org.entando.plugins.pda.core.model.Task;
+import org.entando.plugins.pda.core.request.Filter;
+import org.entando.plugins.pda.core.request.PagedListRequest;
+import org.entando.plugins.pda.core.response.PagedMetadata;
+import org.entando.plugins.pda.core.response.PagedRestResponse;
 import org.entando.plugins.pda.core.service.task.TaskService;
 import org.entando.plugins.pda.pam.exception.KieInvalidPageStart;
 import org.entando.plugins.pda.pam.exception.KieInvalidResponseException;
@@ -22,10 +26,6 @@ import org.entando.plugins.pda.pam.service.task.model.KieTaskDetails;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskListResponse;
 import org.entando.plugins.pda.pam.service.task.model.KieTaskSummaryResponse;
 import org.entando.plugins.pda.pam.service.util.KieInstanceId;
-import org.entando.web.request.Filter;
-import org.entando.web.request.PagedListRequest;
-import org.entando.web.response.PagedMetadata;
-import org.entando.web.response.PagedRestResponse;
 import org.kie.server.api.exception.KieServicesHttpException;
 import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.client.UserTaskServicesClient;
@@ -74,7 +74,7 @@ public class KieTaskService implements TaskService {
             throw new KieInvalidPageStart();
         }
         RestTemplate restTemplate = restTemplateBuilder
-                .basicAuthorization(connection.getUsername(), connection.getPassword())
+                .basicAuthentication(connection.getUsername(), connection.getPassword())
                 .build();
         String username = user == null ? connection.getUsername() : user.getAccessToken().getPreferredUsername();
         String url = getUrl(connection, username, request, filter, groups);

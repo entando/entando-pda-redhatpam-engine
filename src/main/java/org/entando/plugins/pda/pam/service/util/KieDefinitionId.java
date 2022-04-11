@@ -1,7 +1,7 @@
 package org.entando.plugins.pda.pam.service.util;
 
 import java.util.Optional;
-import org.entando.web.exception.BadRequestException;
+import org.entando.plugins.pda.core.exception.BadRequestException;
 
 public class KieDefinitionId {
     public static final String SEPARATOR = "@";

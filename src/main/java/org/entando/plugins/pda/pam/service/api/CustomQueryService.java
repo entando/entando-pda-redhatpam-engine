@@ -3,6 +3,7 @@ package org.entando.plugins.pda.pam.service.api;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import lombok.AllArgsConstructor;
 import org.entando.plugins.pda.core.engine.Connection;
 import org.kie.server.api.model.definition.QueryFilterSpec;
@@ -29,6 +30,6 @@ public class CustomQueryService {
             result = queryClient
                     .query(KieApiService.PDA_GROUPS, QueryServicesClient.QUERY_MAP_RAW, spec, 0, ALL_ITEMS, List.class);
         }
-        return result.stream().flatMap(List::stream).map(Object::toString).collect(Collectors.toList());
+        return (List<String>) result.stream().flatMap(List::stream).map(Object::toString).collect(Collectors.toList());
     }
 }

@@ -6,13 +6,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.entando.plugins.pda.core.exception.BadRequestException;
 import org.entando.plugins.pda.core.model.form.Form;
 import org.entando.plugins.pda.core.model.form.FormField;
 import org.entando.plugins.pda.core.model.form.FormFieldSubForm;
 import org.entando.plugins.pda.core.model.form.FormFieldType;
-import org.entando.web.exception.BadRequestException;
-import org.entando.web.request.Filter;
-import org.entando.web.request.PagedListRequest;
+import org.entando.plugins.pda.core.request.Filter;
+import org.entando.plugins.pda.core.request.PagedListRequest;
 
 @Slf4j
 @UtilityClass

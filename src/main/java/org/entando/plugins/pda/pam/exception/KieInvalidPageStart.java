@@ -1,6 +1,6 @@
 package org.entando.plugins.pda.pam.exception;
 
-import org.entando.web.exception.BadRequestException;
+import org.entando.plugins.pda.core.exception.BadRequestException;
 
 public class KieInvalidPageStart extends BadRequestException {
 
